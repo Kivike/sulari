@@ -20,16 +20,11 @@ int PeopleDetector::testPeopleDetection() {
 	Mat img;
 	HOGDescriptor hog;
 	hog.setSVMDetector(HOGDescriptor::getDefaultPeopleDetector());
-	hog.setSVMDetector(HOGDescriptor::getDaimlerPeopleDetector());
 
 	namedWindow("video capture", CV_WINDOW_AUTOSIZE);
 
 	double fps = cap.get(CAP_PROP_FPS);
 	double fps2 = cap.get(CV_CAP_PROP_FPS);
-
-	cout << "FPS: " << fps << endl;
-	cout << "FPS: " << fps2 << endl;
-
 
 	chrono::milliseconds lastMillis = getCurrentMillis();
 

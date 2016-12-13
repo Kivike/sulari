@@ -51,9 +51,8 @@ static void read_csv(const string& filename, vector<Mat>& images, vector<int>& l
 }
 
 int main(int argc, const char *argv[]) {
-	PeopleDetector *pd = new PeopleDetector();
-	pd->testPeopleDetection();
-	return 0;
+    //startPeopleDetector();
+    //return 0;
 
     // Check for valid command line arguments, print usage
     // if no arguments were given.
@@ -89,14 +88,13 @@ int main(int argc, const char *argv[]) {
     int im_height = images[0].rows;
     // Create a FaceRecognizer and train it on the given images:
     Ptr<BasicFaceRecognizer> model = createFisherFaceRecognizer();
-	
     model->train(images, labels);
     // That's it for learning the Face Recognition model. You now
     // need to create the classifier for the task of Face Detection.
     // We are going to use the haar cascade you have specified in the
     // command line arguments:
     //
-	
+
     CascadeClassifier haar_cascade;
     haar_cascade.load(fn_haar);
     // Get a handle to the Video device:
@@ -108,7 +106,7 @@ int main(int argc, const char *argv[]) {
     }
     // Holds the current frame from the Video device:
     Mat frame;
-	
+
     for(;;) {
         cap >> frame;
         // Clone the current frame:
@@ -162,4 +160,9 @@ int main(int argc, const char *argv[]) {
             break;
     }
     return 0;
+}
+
+void startPeopleDetector() {
+    PeopleDetector *pd = new PeopleDetector();
+	pd->testPeopleDetection();
 }
