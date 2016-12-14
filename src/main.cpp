@@ -107,52 +107,61 @@ int main(int argc, const char *argv[]) {
     // Holds the current frame from the Video device:
     Mat frame;
 
+    int fps = 60;
+
+    chrono::milliseconds startingTime = chrono::duration_cast< chrono::milliseconds >( chrono::system_clock::now().time_since_epoch());
+
     for(;;) {
-        cap >> frame;
-        // Clone the current frame:
-        Mat original = frame.clone();
-        // Convert the current frame to grayscale:
-        Mat gray;
-        cvtColor(original, gray, COLOR_BGR2GRAY);
-        // Find the faces in the frame:
-        vector< Rect_<int> > faces;
-        haar_cascade.detectMultiScale(gray, faces);
-        // At this point you have the position of the faces in
-        // faces. Now we'll get the faces, make a prediction and
-        // annotate it in the video. Cool or what?
-        for(size_t i = 0; i < faces.size(); i++) {
-            // Process face by face:
-            Rect face_i = faces[i];
-            // Crop the face from the image. So simple with OpenCV C++:
-            Mat face = gray(face_i);
-            // Resizing the face is necessary for Eigenfaces and Fisherfaces. You can easily
-            // verify this, by reading through the face recognition tutorial coming with OpenCV.
-            // Resizing IS NOT NEEDED for Local Binary Patterns Histograms, so preparing the
-            // input data really depends on the algorithm used.
-            //
-            // I strongly encourage you to play around with the algorithms. See which work best
-            // in your scenario, LBPH should always be a contender for robust face recognition.
-            //
-            // Since I am showing the Fisherfaces algorithm here, I also show how to resize the
-            // face you have just found:
-            Mat face_resized;
-            cv::resize(face, face_resized, Size(im_width, im_height), 1.0, 1.0, INTER_CUBIC);
-            // Now perform the prediction, see how easy that is:
-            int prediction = model->predict(face_resized);
-            // And finally write all we've found out to the original image!
-            // First of all draw a green rectangle around the detected face:
-            rectangle(original, face_i, Scalar(0, 255,0), 1);
-            // Create the text we will annotate the box with:
-            string box_text = format("Prediction = %d", prediction);
-            // Calculate the position for annotated text (make sure we don't
-            // put illegal values in there):
-            int pos_x = std::max(face_i.tl().x - 10, 0);
-            int pos_y = std::max(face_i.tl().y - 10, 0);
-            // And now put it into the image:
-            putText(original, box_text, Point(pos_x, pos_y), FONT_HERSHEY_PLAIN, 1.0, Scalar(0,255,0), 2);
+        chrono::milliseconds currentTime = chrono::duration_cast< chrono::milliseconds >( chrono::system_clock::now().time_since_epoch());
+        if((currentTime - startingTime).count() > 1000 / fps){
+            startingTime = chrono::duration_cast< chrono::milliseconds >( chrono::system_clock::now().time_since_epoch());
+
+            cap >> frame;
+            // Clone the current frame:
+            Mat original = frame.clone();
+            // Convert the current frame to grayscale:
+            Mat gray;
+            cvtColor(original, gray, COLOR_BGR2GRAY);
+            // Find the faces in the frame:
+            vector< Rect_<int> > faces;
+            haar_cascade.detectMultiScale(gray, faces);
+            // At this point you have the position of the faces in
+            // faces. Now we'll get the faces, make a prediction and
+            // annotate it in the video. Cool or what?
+            for(size_t i = 0; i < faces.size(); i++) {
+                // Process face by face:
+                Rect face_i = faces[i];
+                // Crop the face from the image. So simple with OpenCV C++:
+                Mat face = gray(face_i);
+                // Resizing the face is necessary for Eigenfaces and Fisherfaces. You can easily
+                // verify this, by reading through the face recognition tutorial coming with OpenCV.
+                // Resizing IS NOT NEEDED for Local Binary Patterns Histograms, so preparing the
+                // input data really depends on the algorithm used.
+                //
+                // I strongly encourage you to play around with the algorithms. See which work best
+                // in your scenario, LBPH should always be a contender for robust face recognition.
+                //
+                // Since I am showing the Fisherfaces algorithm here, I also show how to resize the
+                // face you have just found:
+                Mat face_resized;
+                cv::resize(face, face_resized, Size(im_width, im_height), 1.0, 1.0, INTER_CUBIC);
+                // Now perform the prediction, see how easy that is:
+                int prediction = model->predict(face_resized);
+                // And finally write all we've found out to the original image!
+                // First of all draw a green rectangle around the detected face:
+                rectangle(original, face_i, Scalar(0, 255,0), 1);
+                // Create the text we will annotate the box with:
+                string box_text = format("Prediction = %d", prediction);
+                // Calculate the position for annotated text (make sure we don't
+                // put illegal values in there):
+                int pos_x = std::max(face_i.tl().x - 10, 0);
+                int pos_y = std::max(face_i.tl().y - 10, 0);
+                // And now put it into the image:
+                putText(original, box_text, Point(pos_x, pos_y), FONT_HERSHEY_PLAIN, 1.0, Scalar(0,255,0), 2);
+            }
+            // Show the result:
+            imshow("face_recognizer", original);
         }
-        // Show the result:
-        imshow("face_recognizer", original);
         // And display it:
         char key = (char) waitKey(20);
         // Exit this loop on escape:
@@ -162,7 +171,7 @@ int main(int argc, const char *argv[]) {
     return 0;
 }
 
-void startPeopleDetector() {
+void startPeopleDetector() {
     PeopleDetector *pd = new PeopleDetector();
 	pd->testPeopleDetection();
 }
