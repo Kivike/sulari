@@ -38,7 +38,7 @@ int PeopleDetector::testPeopleDetection() {
 
 	namedWindow("video capture", CV_WINDOW_AUTOSIZE);
 
-    int fps = 60;
+    int fps = 15;
 
     chrono::milliseconds startingTime = chrono::duration_cast< chrono::milliseconds >( chrono::system_clock::now().time_since_epoch());
 
@@ -53,8 +53,6 @@ int PeopleDetector::testPeopleDetection() {
 
             vector<Rect> found, found_filtered;
             hog.detectMultiScale(img, found, 0, Size(8, 8), Size(32, 32), 1.05, 2);
-
-            cout << "AAA";
 
             size_t i, j;
             for (i = 0; i < found.size(); i++){

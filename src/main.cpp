@@ -22,7 +22,7 @@
 #include "opencv2/imgproc.hpp"
 #include "opencv2/objdetect.hpp"
 
-#include "peopleDetector.h";
+#include "peopleDetector.h"
 
 #include <iostream>
 #include <fstream>
