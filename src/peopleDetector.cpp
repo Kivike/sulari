@@ -12,8 +12,8 @@ using namespace std;
 using namespace cv;
 using namespace cv::ml;
 
-PeopleDetector::PeopleDetector(void) {
-
+PeopleDetector::PeopleDetector(int fps) {
+    this->fps = fps;
 }
 
 int PeopleDetector::testPeopleDetection() {
@@ -38,13 +38,11 @@ int PeopleDetector::testPeopleDetection() {
 
 	namedWindow("video capture", CV_WINDOW_AUTOSIZE);
 
-    int fps = 15;
-
     chrono::milliseconds startingTime = chrono::duration_cast< chrono::milliseconds >( chrono::system_clock::now().time_since_epoch());
 
 	for(;;){
         chrono::milliseconds currentTime = chrono::duration_cast< chrono::milliseconds >( chrono::system_clock::now().time_since_epoch());
-        if((currentTime - startingTime).count() > 1000 / fps){
+        if((currentTime - startingTime).count() > 1000 / this->fps){
             startingTime = chrono::duration_cast< chrono::milliseconds >( chrono::system_clock::now().time_since_epoch());
 
             cap >> img;

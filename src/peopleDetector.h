@@ -10,12 +10,13 @@ using namespace cv::ml;
 
 class PeopleDetector {
 	public:
-		PeopleDetector();
+		PeopleDetector(int);
 		int testPeopleDetection();
 	private:
 		chrono::milliseconds getCurrentMillis();
 		vector<float> loadDescriptorFromFile(string&);
 		void get_svm_detector(const Ptr<SVM>&, vector<float>&);
+		int fps;
 };
 
 #endif
