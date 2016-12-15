@@ -2,9 +2,15 @@
 #include "opencv2/opencv.hpp"
 #include <chrono>
 #include "peopleDetector.h"
+#include <typeinfo>
+#include <fstream>
+#include <iterator>
+#include <vector>
+#include <string>
 
 using namespace std;
 using namespace cv;
+using namespace cv::ml;
 
 PeopleDetector::PeopleDetector(void) {
 
@@ -19,11 +25,18 @@ int PeopleDetector::testPeopleDetection() {
 
 	Mat img;
 	HOGDescriptor hog;
-	hog.setSVMDetector(HOGDescriptor::getDefaultPeopleDetector());
+
+    //hog.winSize = Size(640, 480);
+
+	//vector<float> descriptor;
+	//string descriptorFile = "/home/roope/Dev/sulari/hog/genfiles/descriptorvector.dat";
+    //descriptor = loadDescriptorFromFile(descriptorFile);
+    //cout << descriptor.size()<< endl;
+	//hog.setSVMDetector(descriptor);
+	//cout << HOGDescriptor::getDefaultPeopleDetector().size() << endl;
+    hog.setSVMDetector(HOGDescriptor::getDefaultPeopleDetector());
 
 	namedWindow("video capture", CV_WINDOW_AUTOSIZE);
-
-	//img = imread("./pictures/pedestrian.jpg");
 
     int fps = 60;
 
@@ -40,6 +53,8 @@ int PeopleDetector::testPeopleDetection() {
 
             vector<Rect> found, found_filtered;
             hog.detectMultiScale(img, found, 0, Size(8, 8), Size(32, 32), 1.05, 2);
+
+            cout << "AAA";
 
             size_t i, j;
             for (i = 0; i < found.size(); i++){
@@ -66,9 +81,43 @@ int PeopleDetector::testPeopleDetection() {
 	return 0;
 }
 
+vector<float> PeopleDetector::loadDescriptorFromFile(string &fileName) {
+    ifstream is(fileName);
+    istream_iterator<float> start(is), _end;
+    vector<float> numbers(start, _end);
+    cout << numbers.size() << endl;
+    //Ptr<SVM> svm;
+    //svm = StatModel::load<SVM>("/home/roope/Dev/sulari/hog/genfiles/cvHOGClassifier.yaml");
+    //vector<float> hogDetector;
+    //get_svm_detector(svm, hogDetector);
+
+    return numbers;
+}
+
 chrono::milliseconds PeopleDetector::getCurrentMillis() {
 	chrono::milliseconds ms = chrono::duration_cast<chrono::milliseconds>(
 		chrono::system_clock::now().time_since_epoch());
 
 	return ms;
 }
+
+void PeopleDetector::get_svm_detector(const Ptr<SVM>& svm, vector< float > & hog_detector )
+{
+    // get the support vectors
+    Mat sv = svm->getSupportVectors();
+    const int sv_total = sv.rows;
+    // get the decision function
+    Mat alpha, svidx;
+    double rho = svm->getDecisionFunction(0, alpha, svidx);
+
+    CV_Assert( alpha.total() == 1 && svidx.total() == 1 && sv_total == 1 );
+    CV_Assert( (alpha.type() == CV_64F && alpha.at<double>(0) == 1.) ||
+               (alpha.type() == CV_32F && alpha.at<float>(0) == 1.f) );
+    CV_Assert( sv.type() == CV_32F );
+    hog_detector.clear();
+
+    hog_detector.resize(sv.cols + 1);
+    memcpy(&hog_detector[0], sv.ptr(), sv.cols*sizeof(hog_detector[0]));
+    hog_detector[sv.cols] = (float)-rho;
+}
+

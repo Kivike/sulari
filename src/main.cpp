@@ -50,9 +50,14 @@ static void read_csv(const string& filename, vector<Mat>& images, vector<int>& l
     }
 }
 
+static void startPeopleDetector() {
+    PeopleDetector *pd = new PeopleDetector();
+	pd->testPeopleDetection();
+}
+
 int main(int argc, const char *argv[]) {
-    //startPeopleDetector();
-    //return 0;
+    startPeopleDetector();
+    return 0;
 
     // Check for valid command line arguments, print usage
     // if no arguments were given.
@@ -169,9 +174,4 @@ int main(int argc, const char *argv[]) {
             break;
     }
     return 0;
-}
-
-void startPeopleDetector() {
-    PeopleDetector *pd = new PeopleDetector();
-	pd->testPeopleDetection();
 }
