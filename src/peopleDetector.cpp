@@ -38,12 +38,21 @@ int PeopleDetector::testPeopleDetection() {
 
 	namedWindow("video capture", CV_WINDOW_AUTOSIZE);
 
-    chrono::milliseconds startingTime = chrono::duration_cast< chrono::milliseconds >( chrono::system_clock::now().time_since_epoch());
+    chrono::milliseconds startingTime, currentTime;
+
+    if(fps > 0) {
+        startingTime = chrono::duration_cast< chrono::milliseconds >( chrono::system_clock::now().time_since_epoch());
+    }
 
 	for(;;){
-        chrono::milliseconds currentTime = chrono::duration_cast< chrono::milliseconds >( chrono::system_clock::now().time_since_epoch());
-        if((currentTime - startingTime).count() > 1000 / this->fps){
-            startingTime = chrono::duration_cast< chrono::milliseconds >( chrono::system_clock::now().time_since_epoch());
+
+        if(fps > 0) {
+            currentTime = chrono::duration_cast< chrono::milliseconds >( chrono::system_clock::now().time_since_epoch());
+        }
+        if(fps <= 0 || (currentTime - startingTime).count() > 1000 / this->fps){
+            if(fps > 0) {
+                startingTime = chrono::duration_cast< chrono::milliseconds >( chrono::system_clock::now().time_since_epoch());
+            }
 
             cap >> img;
             if (!img.data)
