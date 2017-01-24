@@ -23,6 +23,7 @@
 #include "opencv2/objdetect.hpp"
 
 #include "peopleDetector.h"
+#include "LBP.h"
 
 #include <iostream>
 #include <fstream>
@@ -51,14 +52,15 @@ static void read_csv(const string& filename, vector<Mat>& images, vector<int>& l
 }
 
 static void startPeopleDetector(int fps) {
-    PeopleDetector *pd = new PeopleDetector(fps);
-	pd->testPeopleDetection();
+    //PeopleDetector *pd = new PeopleDetector(fps);
+	//pd->testPeopleDetection();
 }
 
 int main(int argc, const char *argv[]) {
     if(argc == 1) {
-        startPeopleDetector(0);
-        exit(0);
+        LBP *lbp = new LBP(0.9, 20);
+        int exitCode = lbp->testWithVideo();
+        exit(exitCode);
     } else if(argc == 2) {
         startPeopleDetector(atoi(argv[1]));
         exit(0);

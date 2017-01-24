@@ -17,11 +17,16 @@ PeopleDetector::PeopleDetector(int fps) {
 }
 
 int PeopleDetector::testPeopleDetection() {
-	VideoCapture cap(CV_CAP_ANY);
+	VideoCapture cap("videos/eli_walk.avi");
 	cap.set(CV_CAP_PROP_FRAME_WIDTH, 320);
 	cap.set(CV_CAP_PROP_FRAME_HEIGHT, 240);
-	if (!cap.isOpened())
-		return -1;
+
+
+	if (!cap.isOpened()) {
+        cout << "Failed to setup cam capture" << endl;
+        return -1;
+	}
+
 
 	Mat img;
 	HOGDescriptor hog;
