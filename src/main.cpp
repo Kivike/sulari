@@ -51,19 +51,17 @@ static void read_csv(const string& filename, vector<Mat>& images, vector<int>& l
     }
 }
 
-static void startPeopleDetector(int fps) {
-    //PeopleDetector *pd = new PeopleDetector(fps);
-	//pd->testPeopleDetection();
-}
-
 int main(int argc, const char *argv[]) {
     if(argc == 1) {
-        LBP *lbp = new LBP(0.9, 20);
-        int exitCode = lbp->testWithVideo();
+        LBP *lbp = new LBP();
+        int exitCode = lbp->testWithVideo("videos/lena_walk2.avi");
         exit(exitCode);
     } else if(argc == 2) {
-        startPeopleDetector(atoi(argv[1]));
-        exit(0);
+        LBP *lbp = new LBP();
+        int exitCode = lbp->testWithVideo(argv[1]);
+        //PeopleDetector pd(atoi(argv[1]);
+        //pd.testPeopleDetection();
+        exit(exitCode);
     } else {
         // Check for valid command line arguments, print usage
         // if no arguments were given.
@@ -75,9 +73,6 @@ int main(int argc, const char *argv[]) {
             exit(1);
         }
     }
-
-
-
 
     // Get the path to your CSV:
     string fn_haar = string(argv[1]);
