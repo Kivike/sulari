@@ -8,6 +8,7 @@
 #include <iostream>
 #include <execinfo.h>
 #include <sys/time.h>
+#include <thread>
 
 using namespace std;
 using namespace cv;
@@ -36,10 +37,17 @@ const bool PRINT_FRAMERATE = true;
 
 const int NEIGHBOURS = 6;
 
+int threadCount;
+
+static LBP* lbp;
+
 LBP::LBP()
 {
+    threadCount = thread::hardware_concurrency();
+    cout << "Using " << threadCount << " threads" << endl;
     vector<vector<unsigned int>> bins(BIN_COUNT);
     pixels = nullptr;   // LBPPixel* Mat will be initialized on first frame
+    lbp = this;
 
     // bins[0] will be filled with all the rest (non-uniform patterns)
     bins.at(1) = { 1, 2, 4, 8, 16, 32, 64, 128 };
@@ -120,6 +128,18 @@ int LBP::testWithVideo(const String &filename) {
     return 0;
 }
 
+static void handleFrameRow(int row, Mat* pixels) {
+    int cols = pixels->cols;
+
+    for(int i = 1; i < cols - 1; i++) {
+        LBPPixel *pixel = pixels->at<LBPPixel*>(row, i);
+
+        vector<unsigned int> newHist = lbp->calculateHistogram(pixel);
+        pixel->isBackground(newHist);
+        pixel->updateAdaptiveHistograms(newHist);
+    }
+}
+
 // Handle new video/capture frame
 void LBP::handleNewFrame(Mat& frame) {
     if(pixels == nullptr) {
@@ -136,16 +156,16 @@ void LBP::handleNewFrame(Mat& frame) {
         rowInc++;
     }
 
-    for(int i = startRow; i < frame.rows - 1; i+=rowInc) {
-        for(int j = 1; j < frame.cols - 1; j++) {
-            LBPPixel *pixel = pixels->at<LBPPixel*>(i, j);
+    vector<thread> threads;
 
-            vector<unsigned int> newHist = calculateHistogram(pixel);
-            pixel->isBackground(newHist);
-            pixel->updateAdaptiveHistograms(newHist);
-        }
+    for(int i = startRow; i < frame.rows - 1; i+=rowInc) {
+        threads.push_back(thread(handleFrameRow, i, pixels));
     }
+
+    for(auto& th: threads) th.join();
 }
+
+
 
 void LBP::initLBPPixels(int rows, int cols, int histCount) {
     pixels = new Mat(rows, cols, DataType<LBPPixel*>::type);

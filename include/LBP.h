@@ -19,12 +19,11 @@ public:
     int testWithVideo(const String&);
     static float getHistogramProximity(const vector<unsigned int>&, const vector<unsigned int>&);
     static void printHistogram(const vector<unsigned int>&);
-
+    vector<unsigned int> calculateHistogram(LBPPixel*);
 
 protected:
 
 private:
-    Mat* pixels;
     vector<LBPPixel*> backgroundPixels;
     // Lookup array
     // [pattern] = class/bin
@@ -37,9 +36,9 @@ private:
     Mat* combineFrames(Mat&, Mat&);
     Mat* getDescriptorMat();
     Mat* createMovementMatrix();
+    Mat* pixels;
     void handleNewFrame(Mat&);
 
-    vector<unsigned int> calculateHistogram(LBPPixel*);
     unsigned int getUniformPatternClass(vector<vector<unsigned int>>, unsigned int);
 
     void initLBPPixels(int, int, int);
