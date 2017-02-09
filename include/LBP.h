@@ -27,10 +27,13 @@ private:
     vector<LBPPixel*> backgroundPixels;
     // Lookup array
     // [pattern] = class/bin
-    unsigned int* uniformPatterns;
+    vector<unsigned int> uniformPatterns;
     long frameCount;
 
+    void genUniformPatternClasses(vector<unsigned int>&, unsigned int);
+
     void calculateFeatureDescriptors(Mat&);
+    void calculateFeatureDescriptors(Mat&, int, int);
     vector<unsigned int> calculateHistogram(int, int, int);
 
     Mat* combineFrames(Mat&, Mat&);
@@ -39,12 +42,9 @@ private:
     Mat* pixels;
     void handleNewFrame(Mat&);
 
-    unsigned int getUniformPatternClass(vector<vector<unsigned int>>, unsigned int);
-
     void initLBPPixels(int, int, int);
     void setHistogramNeighbours(LBPPixel*);
     void showOutputVideo(Mat&, bool);
-
 };
 
 #endif

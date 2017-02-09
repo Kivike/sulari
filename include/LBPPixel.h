@@ -12,7 +12,7 @@ class LBPPixel
         LBPPixel(int, int, int, int);
         virtual ~LBPPixel();
 
-        unsigned char getColor();
+        unsigned char getColor(bool);
         unsigned char getDescriptor();
         bool isBackground(const vector<unsigned int>&);
         void setLowestWeightHistogram(vector<unsigned int>);

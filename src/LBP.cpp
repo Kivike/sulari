@@ -13,13 +13,9 @@
 using namespace std;
 using namespace cv;
 
-const int UNIFORM_BIN_COUNT = 8;
-const int BIN_COUNT = UNIFORM_BIN_COUNT + 1;
-const int NON_UNIFORM_BIN_INDEX = 0;
-
 // How close must histograms be to each other for them to be considered
 // similar
-const float LBP::HISTOGRAM_PROXIMITY_THRESHOLD = 0.9f;
+const float LBP::HISTOGRAM_PROXIMITY_THRESHOLD = 0.95f;
 
 // How close to each other can pixel gray-scale values be
 // while still considering them the same
@@ -31,12 +27,13 @@ const int HISTOGRAM_REGION_SIZE = 14;
 // Show output in seperate frames or in a combined one
 const bool COMBINE_FRAMES = true;
 // If set to true, only every other half of rows are handled on each frame
-const bool INTERLACE = true;
+const bool INTERLACE = false;
 // Output fps to console
-const bool PRINT_FRAMERATE = true;
+const bool PRINT_FRAMERATE = false;
 
-const int NEIGHBOURS = 6;
-
+const unsigned int NEIGHBOUR_COUNT = 6;
+const unsigned int BIN_COUNT = NEIGHBOUR_COUNT + 1;
+const unsigned int DESCRIPTOR_RADIUS = 2;
 int threadCount;
 
 static LBP* lbp;
@@ -45,26 +42,14 @@ LBP::LBP()
 {
     threadCount = thread::hardware_concurrency();
     cout << "Using " << threadCount << " threads" << endl;
-    vector<vector<unsigned int>> bins(BIN_COUNT);
+    //<vector<vector<unsigned int>> bins(BIN_COUNT);
     pixels = nullptr;   // LBPPixel* Mat will be initialized on first frame
     lbp = this;
 
-    // bins[0] will be filled with all the rest (non-uniform patterns)
-    bins.at(1) = { 1, 2, 4, 8, 16, 32, 64, 128 };
-    bins.at(2) = { 20, 6, 3, 129, 136, 40, 96, 80 };
-    bins.at(3) = { 22, 7, 131, 137, 168, 104, 112, 84 };
-    bins.at(4) = { 23, 135, 139, 169, 232, 120, 116, 86 };
-    bins.at(5) = { 151, 143, 171, 233, 248, 124, 118, 87 };
-    bins.at(6) = { 159, 175, 235, 249, 252, 126, 119, 215 };
-    bins.at(7) = { 191, 239, 251, 253, 254, 127, 247, 223 };
-    bins.at(8) = { 255, 0 };
+    genUniformPatternClasses(uniformPatterns, NEIGHBOUR_COUNT);
 
-    uniformPatterns = new unsigned int[256];
-
-    // Fill uniformPattern lookup array
-    for(int i = 0; i < 256; i++) {
-        unsigned int pattern = getUniformPatternClass(bins, i);
-        uniformPatterns[i] = pattern;
+    for(int i = 0; i < uniformPatterns.size(); i++) {
+        cout << "pattern" << i << " " << uniformPatterns.at(i) << endl;
     }
 }
 
@@ -113,7 +98,6 @@ int LBP::testWithVideo(const String &filename) {
 
         // Timing structs for performance monitoring
         struct timeval startT, endT;
-
         gettimeofday(&startT, NULL);
         handleNewFrame(greyFrame);  // ACTUAL ALGORITHM
         gettimeofday(&endT, NULL);
@@ -128,10 +112,39 @@ int LBP::testWithVideo(const String &filename) {
     return 0;
 }
 
+void LBP::genUniformPatternClasses(vector<unsigned int> &patterns, unsigned int neighbours) {
+    int totalPatterns = pow(2, neighbours);
+    patterns = vector<unsigned int>(totalPatterns);
+    cout << "Generate pattern classes" << endl;
+    cout << "Using " << neighbours << " neighbours -> " << totalPatterns << " patterns" << endl;
+
+    for(unsigned int startPos = 0; startPos < neighbours; startPos++) {
+        for(unsigned int bit_count = 1; bit_count < neighbours; bit_count++) {
+            unsigned int pattern = 0;
+            unsigned int curPos = startPos;
+            unsigned int bitsLeft = bit_count;
+
+            while(bitsLeft > 0) {
+                bitsLeft--;
+                if(curPos == neighbours - 1) {
+                    curPos = 0;
+                } else {
+                    curPos++;
+                }
+                pattern |= 1 << curPos;
+            }
+            patterns.at(pattern) = bit_count;
+        }
+    }
+
+    patterns.at(totalPatterns - 1) = neighbours;
+    patterns.at(0) = neighbours;
+}
+
 static void handleFrameRow(int row, Mat* pixels) {
     int cols = pixels->cols;
 
-    for(int i = 1; i < cols - 1; i++) {
+    for(int i = DESCRIPTOR_RADIUS; i < cols - DESCRIPTOR_RADIUS; i++) {
         LBPPixel *pixel = pixels->at<LBPPixel*>(row, i);
 
         vector<unsigned int> newHist = lbp->calculateHistogram(pixel);
@@ -146,9 +159,9 @@ void LBP::handleNewFrame(Mat& frame) {
         initLBPPixels(frame.rows, frame.cols, 3);
     }
 
-    calculateFeatureDescriptors(frame);
+    calculateFeatureDescriptors(frame, DESCRIPTOR_RADIUS, NEIGHBOUR_COUNT);
 
-    int startRow = 1;
+    int startRow = DESCRIPTOR_RADIUS;
     int rowInc = 1;
 
     if(INTERLACE) {
@@ -158,7 +171,7 @@ void LBP::handleNewFrame(Mat& frame) {
 
     vector<thread> threads;
 
-    for(int i = startRow; i < frame.rows - 1; i+=rowInc) {
+    for(int i = startRow; i < frame.rows - DESCRIPTOR_RADIUS; i+=rowInc) {
         threads.push_back(thread(handleFrameRow, i, pixels));
     }
 
@@ -214,8 +227,13 @@ Mat* LBP::combineFrames(Mat& img, Mat& mMatrix) {
 
     for(int i = 0; i < img.rows; i++) {
         for(int j = 0; j < img.cols; j++) {
-            output->at<unsigned char>(i, j) = min(img.at<unsigned char>(i, j),
+
+            /*if(i > 100 && i < 110 && j > 45 && j < 55) {
+                output->at<unsigned char>(i, j) = 250;
+            } else {*/
+                output->at<unsigned char>(i, j) = min(img.at<unsigned char>(i, j),
                                                   mMatrix.at<unsigned char>(i, j));
+            //}
         }
     }
     return output;
@@ -255,10 +273,9 @@ Mat* LBP::createMovementMatrix() {
     for(int i = 0; i < result->rows; i++) {
         for(int j = 0; j < result->cols; j++) {
             LBPPixel *pixel = pixels->at<LBPPixel*>(i, j);
-            int col = pixel->getColor();
 
+            int col = pixel->getColor(false);
             result->at<unsigned char>(i, j) = col;
-            result->at<unsigned char>(i, j+1) = col;
         }
     }
 
@@ -289,6 +306,49 @@ void LBP::calculateFeatureDescriptors(Mat &src) {
     }
 }
 
+// SOURCE: www.bytefish.de/blog/local_binary_patterns/
+void LBP::calculateFeatureDescriptors(Mat &src, int radius, int neighbours) {
+    Mat dst = Mat::zeros(src.rows - 2*radius, src.cols - 2*radius, CV_8UC1);
+
+    for(int n = 0; n < neighbours; n++) {
+        float x = static_cast<float>(radius) * cos(2.0*M_PI*n/static_cast<float>(neighbours));
+        float y = static_cast<float>(radius) * -sin(2.0*M_PI*n/static_cast<float>(neighbours));
+
+        int fx = static_cast<int>(floor(x));
+        int fy = static_cast<int>(floor(y));
+        int cx = static_cast<int>(ceil(x));
+        int cy = static_cast<int>(ceil(y));
+
+        float ty = y - fy;
+        float tx = x -fx;
+
+        float w1 = (1 - tx) * (1 - ty);
+        float w2 = tx * (1 - ty);
+        float w3 = (1 - tx) * ty;
+        float w4 = tx * ty;
+
+        for(int i = radius; i < src.rows - radius; i++) {
+            for(int j = radius; j < src.cols - radius; j++) {
+                float t = w1*src.at<unsigned char>(i + fy, j + fx)
+                    + w2*src.at<unsigned char>(i + fy, j + cx)
+                    + w3*src.at<unsigned char>(i + cy, j + fx)
+                    + w4*src.at<unsigned char>(i + cy, j + cx);
+
+                dst.at<unsigned char>(i - radius, j - radius)
+                    += ((t > src.at<unsigned char>(i, j))
+                        && ((abs(t - src.at<unsigned char>(i, j)) > PIXEL_VALUE_TOLERANCE/*numeric_limits<float>::epsilon()*/))) << n;
+            }
+        }
+    }
+
+    for(int i = radius; i < dst.rows - radius; i++) {
+        for(int j = radius; j < dst.cols - radius; j++) {
+            unsigned char desc = dst.at<unsigned char>(i - radius, j - radius);
+            pixels->at<LBPPixel*>(i, j)->setDescriptor(desc);
+        }
+    }
+}
+
 vector<unsigned int> LBP::calculateHistogram(LBPPixel *pixel) {
     vector<unsigned int> histogram(BIN_COUNT);
 
@@ -296,30 +356,22 @@ vector<unsigned int> LBP::calculateHistogram(LBPPixel *pixel) {
     unsigned int n_size = neighbours.size();
 
     for(size_t i = 0; i < n_size; i++) {
-        unsigned int uniformClass = uniformPatterns[neighbours.at(i)->getDescriptor()];
+        unsigned int desc = neighbours.at(i)->getDescriptor();
+        unsigned int uniformClass = uniformPatterns.at(desc);
         histogram.at(uniformClass)++;
     }
 
+    /*if(pixel->getCol() == 55 && pixel->getRow() == 100) {
+        printHistogram(histogram);
+    }*/
     return histogram;
-}
-
-// Get pattern class based on the binary pattern
-unsigned int LBP::getUniformPatternClass(vector<vector<unsigned int>> bins, unsigned int pattern) {
-    for(size_t i = 0; i < bins.size(); i++) {
-        for(size_t j = 0; j < bins.at(i).size(); j++) {
-            if(bins.at(i).at(j) == pattern) {
-                return i;
-            }
-        }
-    }
-    // Returns -1 if pattern doesn't belong to any uniform pattern
-    return NON_UNIFORM_BIN_INDEX;
 }
 
 // Calculates how close to eachother histograms are and return float between 0 and 1
 float LBP::getHistogramProximity(const vector<unsigned int> &hist1, const vector<unsigned int> &hist2) {
     unsigned int totalCommon = 0;
     unsigned int totalMax = 0;
+
     for(size_t i = 0; i < hist1.size(); i++) {
         unsigned int minAmount = min(hist1.at(i), hist2.at(i));
         totalMax += hist1.at(i);
@@ -327,7 +379,7 @@ float LBP::getHistogramProximity(const vector<unsigned int> &hist1, const vector
         totalCommon += minAmount;
     }
 
-    return (float)totalCommon / (float)(totalMax); // divide by 64
+    return (float)totalCommon / (float)(totalMax);
 }
 
 // couts all values in the histogram on a single line

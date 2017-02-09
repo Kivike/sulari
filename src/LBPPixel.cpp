@@ -9,13 +9,15 @@
 
 #include <iostream>
 
-const float BACKGROUND_WEIGHT = 0.55;
+const float BACKGROUND_WEIGHT = 0.7;
 
 const unsigned char FOREGROUND_COLOR = 240;
 const unsigned char BACKGROUND_COLOR = 0;
 
 using namespace std;
 using namespace cv;
+
+unsigned int descriptor = 0;
 
 LBPPixel::LBPPixel(int histogramCount, int binCount, int row, int col) {
     for(int i = 0; i < histogramCount; i++) {
@@ -150,8 +152,12 @@ bool LBPPixel::isBackground(const vector<unsigned int> &newHist) {
     return false;
 }
 
-unsigned char LBPPixel::getColor() {
-    return this->color;
+unsigned char LBPPixel::getColor(bool weightGrayValue) {
+    if(weightGrayValue) {
+        return (1 - histograms.at(0)->getWeight()) * 255;
+    } else {
+        return this->color;
+    }
 }
 
 void LBPPixel::setColor(unsigned char color) {
