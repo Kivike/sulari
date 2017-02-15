@@ -28,14 +28,23 @@ class LBPPixel
 
         int getRow();
         int getCol();
+
+
     protected:
 
     private:
         unsigned char color, descriptor;
-        int row, col, histStartRow, histEndRow, histStartCol, histEndCol;
-        vector<AdaptiveHistogram*> histograms, backgroundHistograms;
-        vector<LBPPixel*> histogramNeighbours;
+        const unsigned char FOREGROUND_COLOR, BACKGROUND_COLOR;
+        /**
+         * Threshold weight for considering a pixel background
+         */
+        const float BACKGROUND_WEIGHT;
 
+        vector<AdaptiveHistogram*> histograms, backgroundHistograms;
+        /**
+         *  Neighbours in rectangular area from which histogram is calculated from
+         */
+        vector<LBPPixel*> histogramNeighbours;
         void setColor(unsigned char);
 
         static bool compareWeight(AdaptiveHistogram*, AdaptiveHistogram*);

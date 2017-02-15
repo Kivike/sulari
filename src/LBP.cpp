@@ -15,32 +15,38 @@ using namespace cv;
 
 // How close must histograms be to each other for them to be considered
 // similar
-const float LBP::HISTOGRAM_PROXIMITY_THRESHOLD = 0.95f;
+const float LBP::HISTOGRAM_PROXIMITY_THRESHOLD = 0.9f;
 
+//!ALGORITHM SETTINGS
 // How close to each other can pixel gray-scale values be
 // while still considering them the same
 const int PIXEL_VALUE_TOLERANCE = 15;
-
 // Currently the region is a X*X square
 const int HISTOGRAM_REGION_SIZE = 14;
-
-// Show output in seperate frames or in a combined one
-const bool COMBINE_FRAMES = true;
 // If set to true, only every other half of rows are handled on each frame
 const bool INTERLACE = false;
-// Output fps to console
-const bool PRINT_FRAMERATE = false;
-
 const unsigned int NEIGHBOUR_COUNT = 6;
 const unsigned int BIN_COUNT = NEIGHBOUR_COUNT + 1;
 const unsigned int DESCRIPTOR_RADIUS = 2;
+///
+
+
+// Show output in seperate frames or in a combined one
+const bool COMBINE_FRAMES = true;
+// Output fps to console
+const bool PRINT_FRAMERATE = false;
+// Use multiple threads?
+bool useThreading = true;
 int threadCount;
 
 static LBP* lbp;
 
 LBP::LBP()
 {
-    threadCount = thread::hardware_concurrency();
+    if(thread::hardware_concurrency() == 1) {
+        // Disable threading if only 1 core is used
+        USE_THREADING = false;
+    }
     cout << "Using " << threadCount << " threads" << endl;
     //<vector<vector<unsigned int>> bins(BIN_COUNT);
     pixels = nullptr;   // LBPPixel* Mat will be initialized on first frame
@@ -171,6 +177,7 @@ void LBP::handleNewFrame(Mat& frame) {
 
     vector<thread> threads;
 
+    // Handle every row in a seperate thread
     for(int i = startRow; i < frame.rows - DESCRIPTOR_RADIUS; i+=rowInc) {
         threads.push_back(thread(handleFrameRow, i, pixels));
     }
@@ -178,8 +185,7 @@ void LBP::handleNewFrame(Mat& frame) {
     for(auto& th: threads) th.join();
 }
 
-
-
+// Create pixels and connect histogram neighbours
 void LBP::initLBPPixels(int rows, int cols, int histCount) {
     pixels = new Mat(rows, cols, DataType<LBPPixel*>::type);
 
@@ -227,13 +233,8 @@ Mat* LBP::combineFrames(Mat& img, Mat& mMatrix) {
 
     for(int i = 0; i < img.rows; i++) {
         for(int j = 0; j < img.cols; j++) {
-
-            /*if(i > 100 && i < 110 && j > 45 && j < 55) {
-                output->at<unsigned char>(i, j) = 250;
-            } else {*/
-                output->at<unsigned char>(i, j) = min(img.at<unsigned char>(i, j),
+            output->at<unsigned char>(i, j) = min(img.at<unsigned char>(i, j),
                                                   mMatrix.at<unsigned char>(i, j));
-            //}
         }
     }
     return output;
@@ -282,6 +283,7 @@ Mat* LBP::createMovementMatrix() {
     return result;
 }
 
+// The original LBP descriptor with 8 nearest neighbour pixels
 void LBP::calculateFeatureDescriptors(Mat &src) {
     unsigned int threshold;
     unsigned char binaryCode;
@@ -307,6 +309,7 @@ void LBP::calculateFeatureDescriptors(Mat &src) {
 }
 
 // SOURCE: www.bytefish.de/blog/local_binary_patterns/
+// Uses wanted radius and neighbours in circular pattern using interpolation
 void LBP::calculateFeatureDescriptors(Mat &src, int radius, int neighbours) {
     Mat dst = Mat::zeros(src.rows - 2*radius, src.cols - 2*radius, CV_8UC1);
 
@@ -336,7 +339,7 @@ void LBP::calculateFeatureDescriptors(Mat &src, int radius, int neighbours) {
 
                 dst.at<unsigned char>(i - radius, j - radius)
                     += ((t > src.at<unsigned char>(i, j))
-                        && ((abs(t - src.at<unsigned char>(i, j)) > PIXEL_VALUE_TOLERANCE/*numeric_limits<float>::epsilon()*/))) << n;
+                        && ((abs(t - src.at<unsigned char>(i, j)) > PIXEL_VALUE_TOLERANCE))) << n;
             }
         }
     }
@@ -361,9 +364,6 @@ vector<unsigned int> LBP::calculateHistogram(LBPPixel *pixel) {
         histogram.at(uniformClass)++;
     }
 
-    /*if(pixel->getCol() == 55 && pixel->getRow() == 100) {
-        printHistogram(histogram);
-    }*/
     return histogram;
 }
 

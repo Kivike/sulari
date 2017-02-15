@@ -53,15 +53,41 @@ static void read_csv(const string& filename, vector<Mat>& images, vector<int>& l
 
 int main(int argc, const char *argv[]) {
     if(argc == 1) {
+        // NO ARGUMENTS
         LBP *lbp = new LBP();
         int exitCode = lbp->testWithVideo("videos/lena_walk2.avi");
         exit(exitCode);
     } else if(argc == 2) {
-        LBP *lbp = new LBP();
-        int exitCode = lbp->testWithVideo(argv[1]);
-        //PeopleDetector pd(atoi(argv[1]);
-        //pd.testPeopleDetection();
-        exit(exitCode);
+        if(argv[1] == "lbp") {
+            LBP lbp();
+            int exitCode = lbp.testWithVideo("videos/lena_walk2.avi");
+            exit(exitCode);
+        } else if(argv[1] == "hog") {
+            PeopleDetector pd("videos/lena_walk2.avi");
+            int exitCode = pd.testPeopleDetection();
+            exit(exitCode);
+        }
+    } else if(argc == 3) {  // Second argument is the video used or -webcam
+        bool webcam = argv[2] == "-webcam";
+
+        if(argv[1] == "lbp") {
+            LBP lbp();
+            if(webCam) {
+                int exitCode = lbp.testWithVideo();
+            } else {
+                int exitCode = lbp.testWithVideo(argv[2]);
+            }
+            exit(exitCode);
+        } else if(argv[1] == "hog") {
+            PeopleDetector pd;
+            if(webcam) {
+                pd = PeopleDetector();
+            } else {
+                pd = PeopleDetector(argv[2]);
+            }
+            int exitCode = pd.testPeopleDetection();
+            exit(exitCode);
+        }
     } else {
         // Check for valid command line arguments, print usage
         // if no arguments were given.

@@ -12,15 +12,25 @@ using namespace std;
 using namespace cv;
 using namespace cv::ml;
 
-PeopleDetector::PeopleDetector(int fps) {
-    this->fps = fps;
+PeopleDetector::PeopleDetector(String videoFile) {
+    this->videoFile = videoFile;
 }
 
+PeopleDetector::PeopleDetector() {}
+
+PeopleDetecter::p
 int PeopleDetector::testPeopleDetection() {
-	VideoCapture cap("videos/eli_walk.avi");
+    VideoCapture cap;
+
+    if(this->videoFile != null) {
+        cap = VideoCapture(videoFile)
+    } else {
+        // Webcam
+        cap = VideoCapture(-1);
+    }
+
 	cap.set(CV_CAP_PROP_FRAME_WIDTH, 320);
 	cap.set(CV_CAP_PROP_FRAME_HEIGHT, 240);
-
 
 	if (!cap.isOpened()) {
         cout << "Failed to setup cam capture" << endl;
@@ -45,20 +55,9 @@ int PeopleDetector::testPeopleDetection() {
 
     chrono::milliseconds startingTime, currentTime;
 
-    if(fps > 0) {
-        startingTime = chrono::duration_cast< chrono::milliseconds >( chrono::system_clock::now().time_since_epoch());
-    }
-
 	for(;;){
 
-        if(fps > 0) {
-            currentTime = chrono::duration_cast< chrono::milliseconds >( chrono::system_clock::now().time_since_epoch());
-        }
         if(fps <= 0 || (currentTime - startingTime).count() > 1000 / this->fps){
-            if(fps > 0) {
-                startingTime = chrono::duration_cast< chrono::milliseconds >( chrono::system_clock::now().time_since_epoch());
-            }
-
             cap >> img;
             if (!img.data)
                 continue;

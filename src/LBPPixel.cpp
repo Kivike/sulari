@@ -9,7 +9,9 @@
 
 #include <iostream>
 
+/// ALGORITHM SETTINGS
 const float BACKGROUND_WEIGHT = 0.7;
+///
 
 const unsigned char FOREGROUND_COLOR = 240;
 const unsigned char BACKGROUND_COLOR = 0;
@@ -69,7 +71,6 @@ bool LBPPixel::compareWeight(AdaptiveHistogram *h1, AdaptiveHistogram *h2) {
 
 void LBPPixel::updateHistogramWeights(const vector<unsigned int> &newHist,
                 int bestMatchIndex, float bestMatchProximity) {
-
     for(size_t i = 0; i < histograms.size(); i++) {
         if(i == (unsigned int)bestMatchIndex) {
             histograms.at(i)->updateWithNewData(newHist);

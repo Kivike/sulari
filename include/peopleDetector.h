@@ -17,6 +17,7 @@ class PeopleDetector {
 		vector<float> loadDescriptorFromFile(string&);
 		void get_svm_detector(const Ptr<SVM>&, vector<float>&);
 		int fps;
+		private String videoFile;
 };
 
 #endif
