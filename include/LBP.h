@@ -16,6 +16,7 @@ public:
 
     LBP();
     virtual ~LBP();
+    int testWithVideo();
     int testWithVideo(const String&);
     static float getHistogramProximity(const vector<unsigned int>&, const vector<unsigned int>&);
     static void printHistogram(const vector<unsigned int>&);

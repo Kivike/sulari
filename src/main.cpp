@@ -58,29 +58,30 @@ int main(int argc, const char *argv[]) {
         int exitCode = lbp->testWithVideo("videos/lena_walk2.avi");
         exit(exitCode);
     } else if(argc == 2) {
-        if(argv[1] == "lbp") {
-            LBP lbp();
+        if(strcmp(argv[1], "lbp")) {
+            LBP lbp;
             int exitCode = lbp.testWithVideo("videos/lena_walk2.avi");
             exit(exitCode);
-        } else if(argv[1] == "hog") {
+        } else if(strcmp(argv[1], "hog")) {
             PeopleDetector pd("videos/lena_walk2.avi");
             int exitCode = pd.testPeopleDetection();
             exit(exitCode);
         }
     } else if(argc == 3) {  // Second argument is the video used or -webcam
-        bool webcam = argv[2] == "-webcam";
+        bool webCam = strcmp(argv[2], "-webcam");
 
-        if(argv[1] == "lbp") {
-            LBP lbp();
+        if(strcmp(argv[1], "lbp")) {
+            LBP lbp;
+            int exitCode;
             if(webCam) {
-                int exitCode = lbp.testWithVideo();
+                exitCode = lbp.testWithVideo();
             } else {
-                int exitCode = lbp.testWithVideo(argv[2]);
+                exitCode = lbp.testWithVideo(argv[2]);
             }
             exit(exitCode);
-        } else if(argv[1] == "hog") {
+        } else if(strcmp(argv[1], "hog")) {
             PeopleDetector pd;
-            if(webcam) {
+            if(webCam) {
                 pd = PeopleDetector();
             } else {
                 pd = PeopleDetector(argv[2]);

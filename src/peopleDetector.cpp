@@ -12,18 +12,17 @@ using namespace std;
 using namespace cv;
 using namespace cv::ml;
 
-PeopleDetector::PeopleDetector(String videoFile) {
+PeopleDetector::PeopleDetector(const string& videoFile) {
     this->videoFile = videoFile;
 }
 
 PeopleDetector::PeopleDetector() {}
 
-PeopleDetecter::p
 int PeopleDetector::testPeopleDetection() {
     VideoCapture cap;
 
-    if(this->videoFile != null) {
-        cap = VideoCapture(videoFile)
+    if(!this->videoFile.empty()) {
+        cap = VideoCapture(videoFile);
     } else {
         // Webcam
         cap = VideoCapture(-1);

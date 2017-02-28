@@ -45,7 +45,7 @@ LBP::LBP()
 {
     if(thread::hardware_concurrency() == 1) {
         // Disable threading if only 1 core is used
-        USE_THREADING = false;
+        useThreading = false;
     }
     cout << "Using " << threadCount << " threads" << endl;
     //<vector<vector<unsigned int>> bins(BIN_COUNT);
@@ -53,10 +53,6 @@ LBP::LBP()
     lbp = this;
 
     genUniformPatternClasses(uniformPatterns, NEIGHBOUR_COUNT);
-
-    for(int i = 0; i < uniformPatterns.size(); i++) {
-        cout << "pattern" << i << " " << uniformPatterns.at(i) << endl;
-    }
 }
 
 LBP::~LBP()
@@ -118,6 +114,10 @@ int LBP::testWithVideo(const String &filename) {
     return 0;
 }
 
+int LBP::testWithVideo() {
+    return this->testWithVideo("");
+}
+
 void LBP::genUniformPatternClasses(vector<unsigned int> &patterns, unsigned int neighbours) {
     int totalPatterns = pow(2, neighbours);
     patterns = vector<unsigned int>(totalPatterns);
@@ -150,7 +150,7 @@ void LBP::genUniformPatternClasses(vector<unsigned int> &patterns, unsigned int 
 static void handleFrameRow(int row, Mat* pixels) {
     int cols = pixels->cols;
 
-    for(int i = DESCRIPTOR_RADIUS; i < cols - DESCRIPTOR_RADIUS; i++) {
+    for(unsigned int i = DESCRIPTOR_RADIUS; i < cols - DESCRIPTOR_RADIUS; i++) {
         LBPPixel *pixel = pixels->at<LBPPixel*>(row, i);
 
         vector<unsigned int> newHist = lbp->calculateHistogram(pixel);
@@ -178,7 +178,7 @@ void LBP::handleNewFrame(Mat& frame) {
     vector<thread> threads;
 
     // Handle every row in a seperate thread
-    for(int i = startRow; i < frame.rows - DESCRIPTOR_RADIUS; i+=rowInc) {
+    for(unsigned int i = startRow; i < frame.rows - DESCRIPTOR_RADIUS; i+=rowInc) {
         threads.push_back(thread(handleFrameRow, i, pixels));
     }
 

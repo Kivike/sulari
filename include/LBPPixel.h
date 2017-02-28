@@ -28,17 +28,17 @@ class LBPPixel
 
         int getRow();
         int getCol();
-
-
     protected:
 
     private:
         unsigned char color, descriptor;
-        const unsigned char FOREGROUND_COLOR, BACKGROUND_COLOR;
+        static const unsigned char FOREGROUND_COLOR, BACKGROUND_COLOR;
         /**
          * Threshold weight for considering a pixel background
          */
-        const float BACKGROUND_WEIGHT;
+        static const float BACKGROUND_WEIGHT;
+
+        int row, col;
 
         vector<AdaptiveHistogram*> histograms, backgroundHistograms;
         /**

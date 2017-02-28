@@ -10,14 +10,15 @@ using namespace cv::ml;
 
 class PeopleDetector {
 	public:
-		PeopleDetector(int);
+	    PeopleDetector();
+		PeopleDetector(const string&);
 		int testPeopleDetection();
 	private:
 		chrono::milliseconds getCurrentMillis();
 		vector<float> loadDescriptorFromFile(string&);
 		void get_svm_detector(const Ptr<SVM>&, vector<float>&);
 		int fps;
-		private String videoFile;
+		string videoFile;
 };
 
 #endif
