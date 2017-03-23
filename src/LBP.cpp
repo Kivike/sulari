@@ -20,26 +20,21 @@ const float LBP::HISTOGRAM_PROXIMITY_THRESHOLD = 0.9f;
 //!ALGORITHM SETTINGS
 // How close to each other can pixel gray-scale values be
 // while still considering them the same
-const int PIXEL_VALUE_TOLERANCE = 15;
+const int LBP::PIXEL_VALUE_TOLERANCE = 15;
 // Currently the region is a X*X square
-const int HISTOGRAM_REGION_SIZE = 14;
+const int LBP::HISTOGRAM_REGION_SIZE = 14;
 // If set to true, only every other half of rows are handled on each frame
-const bool INTERLACE = false;
-const unsigned int NEIGHBOUR_COUNT = 6;
-const unsigned int BIN_COUNT = NEIGHBOUR_COUNT + 1;
-const unsigned int DESCRIPTOR_RADIUS = 2;
-///
-
+const bool LBP::INTERLACE = false;
+const unsigned int LBP::NEIGHBOUR_COUNT = 6;
+const unsigned int LBP::BIN_COUNT = LBP::NEIGHBOUR_COUNT + 1;
+const unsigned int LBP::DESCRIPTOR_RADIUS = 2;
 
 // Show output in seperate frames or in a combined one
-const bool COMBINE_FRAMES = true;
+const bool LBP::COMBINE_FRAMES = true;
 // Output fps to console
-const bool PRINT_FRAMERATE = false;
+const bool LBP::PRINT_FRAMERATE = false;
 // Use multiple threads?
 bool useThreading = true;
-int threadCount;
-
-static LBP* lbp;
 
 LBP::LBP()
 {
@@ -47,12 +42,10 @@ LBP::LBP()
         // Disable threading if only 1 core is used
         useThreading = false;
     }
-    cout << "Using " << threadCount << " threads" << endl;
     //<vector<vector<unsigned int>> bins(BIN_COUNT);
     pixels = nullptr;   // LBPPixel* Mat will be initialized on first frame
-    lbp = this;
 
-    genUniformPatternClasses(uniformPatterns, NEIGHBOUR_COUNT);
+    genUniformPatternClasses(uniformPatterns, LBP::NEIGHBOUR_COUNT);
 }
 
 LBP::~LBP()
@@ -109,7 +102,7 @@ int LBP::testWithVideo(const String &filename) {
             cout << 1/seconds << "fps" << endl;
         }
 
-        showOutputVideo(greyFrame, COMBINE_FRAMES);
+        showOutputVideo(greyFrame, LBP::COMBINE_FRAMES);
     }
     return 0;
 }
@@ -147,10 +140,10 @@ void LBP::genUniformPatternClasses(vector<unsigned int> &patterns, unsigned int 
     patterns.at(0) = neighbours;
 }
 
-static void handleFrameRow(int row, Mat* pixels) {
+static void handleFrameRow(LBP* lbp, int row, Mat* pixels) {
     int cols = pixels->cols;
 
-    for(unsigned int i = DESCRIPTOR_RADIUS; i < cols - DESCRIPTOR_RADIUS; i++) {
+    for(unsigned int i = LBP::DESCRIPTOR_RADIUS; i < cols - LBP::DESCRIPTOR_RADIUS; i++) {
         LBPPixel *pixel = pixels->at<LBPPixel*>(row, i);
 
         vector<unsigned int> newHist = lbp->calculateHistogram(pixel);
@@ -165,9 +158,9 @@ void LBP::handleNewFrame(Mat& frame) {
         initLBPPixels(frame.rows, frame.cols, 3);
     }
 
-    calculateFeatureDescriptors(frame, DESCRIPTOR_RADIUS, NEIGHBOUR_COUNT);
+    calculateFeatureDescriptors(frame, LBP::DESCRIPTOR_RADIUS, LBP::NEIGHBOUR_COUNT);
 
-    int startRow = DESCRIPTOR_RADIUS;
+    int startRow = LBP::DESCRIPTOR_RADIUS;
     int rowInc = 1;
 
     if(INTERLACE) {
@@ -178,8 +171,8 @@ void LBP::handleNewFrame(Mat& frame) {
     vector<thread> threads;
 
     // Handle every row in a seperate thread
-    for(unsigned int i = startRow; i < frame.rows - DESCRIPTOR_RADIUS; i+=rowInc) {
-        threads.push_back(thread(handleFrameRow, i, pixels));
+    for(unsigned int i = startRow; i < frame.rows - LBP::DESCRIPTOR_RADIUS; i+=rowInc) {
+        threads.push_back(thread(handleFrameRow, this, i, pixels));
     }
 
     for(auto& th: threads) th.join();
@@ -191,7 +184,7 @@ void LBP::initLBPPixels(int rows, int cols, int histCount) {
 
     for(int i = 0; i < rows; i++) {
         for(int j = 0; j < cols; j++) {
-            pixels->at<LBPPixel*>(i, j) = new LBPPixel(histCount, BIN_COUNT, i, j);
+            pixels->at<LBPPixel*>(i, j) = new LBPPixel(histCount, LBP::BIN_COUNT, i, j);
         }
     }
 
@@ -206,10 +199,10 @@ void LBP::initLBPPixels(int rows, int cols, int histCount) {
 // pixel: pixel of which to set neighbours for
 
 void LBP::setHistogramNeighbours(LBPPixel* pixel) {
-    int startRow = max(1, pixel->getRow() - HISTOGRAM_REGION_SIZE/2);
-    int endRow = min(pixels->rows - 1, pixel->getRow() + HISTOGRAM_REGION_SIZE/2);
-    int startCol = max(1, pixel->getCol() - HISTOGRAM_REGION_SIZE/2);
-    int endCol = min(pixels->cols - 1, pixel->getCol() + HISTOGRAM_REGION_SIZE/2);
+    int startRow = max(1, pixel->getRow() - LBP::HISTOGRAM_REGION_SIZE/2);
+    int endRow = min(pixels->rows - 1, pixel->getRow() + LBP::HISTOGRAM_REGION_SIZE/2);
+    int startCol = max(1, pixel->getCol() - LBP::HISTOGRAM_REGION_SIZE/2);
+    int endCol = min(pixels->cols - 1, pixel->getCol() + LBP::HISTOGRAM_REGION_SIZE/2);
 
     vector<LBPPixel*> neighbours;
 
@@ -291,7 +284,7 @@ void LBP::calculateFeatureDescriptors(Mat &src) {
     for(int i = 1; i < src.rows - 1; i++) {
         for(int j = 1; j < src.cols - 1; j++) {
             threshold = src.at<unsigned char>(i, j);
-            threshold += PIXEL_VALUE_TOLERANCE;
+            threshold += LBP::PIXEL_VALUE_TOLERANCE;
 
             binaryCode = 0;
             binaryCode |= (src.at<unsigned char>(i - 1, j - 1) >= threshold) << 7;

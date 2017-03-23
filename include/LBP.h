@@ -13,7 +13,7 @@ using namespace std;
 class LBP {
 public:
     static const float HISTOGRAM_PROXIMITY_THRESHOLD;
-
+    static const unsigned int DESCRIPTOR_RADIUS;
     LBP();
     virtual ~LBP();
     int testWithVideo();
@@ -21,10 +21,18 @@ public:
     static float getHistogramProximity(const vector<unsigned int>&, const vector<unsigned int>&);
     static void printHistogram(const vector<unsigned int>&);
     vector<unsigned int> calculateHistogram(LBPPixel*);
-
+    void handleNewFrame(Mat&);
 protected:
 
 private:
+    static const int PIXEL_VALUE_TOLERANCE;
+    static const int HISTOGRAM_REGION_SIZE;
+    static const unsigned int NEIGHBOUR_COUNT;
+    static const unsigned int BIN_COUNT;
+    static const bool COMBINE_FRAMES;
+    static const bool INTERLACE;
+    static const bool PRINT_FRAMERATE;
+
     vector<LBPPixel*> backgroundPixels;
     // Lookup array
     // [pattern] = class/bin
@@ -41,7 +49,7 @@ private:
     Mat* getDescriptorMat();
     Mat* createMovementMatrix();
     Mat* pixels;
-    void handleNewFrame(Mat&);
+
 
     void initLBPPixels(int, int, int);
     void setHistogramNeighbours(LBPPixel*);

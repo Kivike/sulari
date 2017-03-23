@@ -24,10 +24,12 @@
 
 #include "peopleDetector.h"
 #include "LBP.h"
+#include "CascadeClassifierTester.h"
 
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <string>
 
 using namespace cv;
 using namespace cv::face;
@@ -51,7 +53,33 @@ static void read_csv(const string& filename, vector<Mat>& images, vector<int>& l
     }
 }
 
+static void runTests() {
+    CascadeClassifierTester *cct = new CascadeClassifierTester();
+    string cascade = "cascade/cascade_lbp4.xml";
+
+    cct->setCascade(cascade, 64, 128);
+    cct->enableBgRemoval();
+
+    vector<string> testFiles = {
+        "videos/daria_walk.avi",
+        "videos/daria_walk.avi",
+        "videos/lena_walk2.avi",
+        "videos/ut-interaction/seq1.avi",
+        "videos/ut-interaction/seq2.avi",
+        "videos/ut-interaction/seq3.avi",
+        "videos/ut-interaction/seq4.avi",
+        "videos/ut-interaction/seq5.avi"
+    };
+    cct->setTestMaterialFiles(testFiles);
+
+    cct->startTests();
+}
+
 int main(int argc, const char *argv[]) {
+    runTests();
+
+    return 0;
+
     if(argc == 1) {
         // NO ARGUMENTS
         LBP *lbp = new LBP();
