@@ -13,14 +13,30 @@
 class CascadeClassifierTester
 {
     public:
+        struct TestFile {
+            std::string path;
+            int peopleCount;
+        };
+
+        struct TestSet {
+            std::vector<struct TestFile> files;
+            std::string name;
+        };
+
+        struct TestResult {
+            TestFile testFile;
+            float detectionRate;
+            float falseNegativeRate;
+        };
+
         CascadeClassifierTester();
         virtual ~CascadeClassifierTester();
 
-        void setTestMaterialFiles(std::vector<std::string>);
+        void setTestMaterialFiles(TestSet[]);
         void setCascade(std::string&, int, int);
         void enableBgRemoval();
         void disableBgRemoval();
-        void startTests();
+        void runTest(struct TestSet);
     protected:
 
     private:
@@ -29,6 +45,7 @@ class CascadeClassifierTester
         cv::CascadeClassifier classifier;
         std::vector<std::string> testMaterial;
         cv::Mat clampFrameSize(cv::Mat*, cv::Size, cv::Size);
+        TestResult testVideoFile(struct TestFile);
 };
 
 #endif // CASCADECLASSIFIERTESTER_H

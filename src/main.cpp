@@ -48,6 +48,7 @@ static void read_csv(const string& filename, vector<Mat>& images, vector<int>& l
         getline(liness, classlabel);
         if(!path.empty() && !classlabel.empty()) {
             images.push_back(imread(path, 0));
+            images.push_back(imread(path, 0));
             labels.push_back(atoi(classlabel.c_str()));
         }
     }
@@ -60,19 +61,32 @@ static void runTests() {
     cct->setCascade(cascade, 64, 128);
     cct->enableBgRemoval();
 
-    vector<string> testFiles = {
-        "videos/daria_walk.avi",
-        "videos/daria_walk.avi",
-        "videos/lena_walk2.avi",
-        "videos/ut-interaction/seq1.avi",
-        "videos/ut-interaction/seq2.avi",
-        "videos/ut-interaction/seq3.avi",
-        "videos/ut-interaction/seq4.avi",
-        "videos/ut-interaction/seq5.avi"
+    TestStruct kth = {
+        vector<string>{
+            "videos/kth/daria_walk.avi",
+            "videos/kth/daria_walk2.avi",
+            "videos/kth/lena_walk2.avi"
+        },
+        "KTH"
     };
-    cct->setTestMaterialFiles(testFiles);
+    TestStruct ut_interaction = {
+        vector<string>{
+            "videos/ut-interaction/seq1.avi",
+            "videos/ut-interaction/seq2.avi",
+            "videos/ut-interaction/seq3.avi",
+            "videos/ut-interaction/seq4.avi",
+            "videos/ut-interaction/seq5.avi",
+            "videos/ut-interaction/seq6.avi",
+            "videos/ut-interaction/seq7.avi",
+            "videos/ut-interaction/seq8.avi",
+            "videos/ut-interaction/seq9.avi",
+            "videos/ut-interaction/seq10.avi"
+        },
+        ""
+    }
 
-    cct->startTests();
+    cct->runTest(kth);
+    cct->runTest(ut_interaction);
 }
 
 int main(int argc, const char *argv[]) {
