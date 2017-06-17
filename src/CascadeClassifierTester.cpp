@@ -4,7 +4,7 @@
 
 #include "CascadeClassifierTester.h"
 
-#include "LBP.h"
+#include "BackgroundRemover.h"
 
 #include "opencv2/core/core.hpp"
 #include "opencv2/highgui/highgui.hpp"
@@ -12,9 +12,11 @@
 
 #include <iostream>
 #include <dirent.h>
+#include <sys/time.h>
 
 using namespace std;
 using namespace cv;
+using namespace Testing;
 
 CascadeClassifierTester::CascadeClassifierTester()
 {
@@ -36,34 +38,43 @@ void CascadeClassifierTester::disableBgRemoval() {
 }
 
 void CascadeClassifierTester::runTest(struct TestSet testSet) {
-    int materialSize = sizeof(testSet)/sizeof(testSet[0]);
-    vector<struct TestResult> results;
+    int materialSize = testSet.files.size();
+    printf("Starting test set %s (%d files)\n", testSet.name.c_str(), materialSize);
+    vector<TestResult> results;
 
     for(int i = 0; i < materialSize; i++) {
-        struct TestResult r = testVideoFile(testSet.at(i));
+        struct TestResult r = testVideoFile(testSet.files.at(i));
 
-        results.push_back(testVideoFile(materialSize.at(i)));
+        results.push_back(r);
     }
+    TestResult setResult = resultAverage(results);
+
+    printf("%s result: detection rate %f, fp rate %f, time avg %f\n",
+           testSet.name.c_str(), setResult.detectionRate, setResult.falseNegativeRate, setResult.avgCalcDuration);
 }
 
-TestResult* CascadeClassifierTester::testVideoFile(struct TestFile file) {
-    VideoCapture cap = VideoCapture(file.pathpath);
+TestResult CascadeClassifierTester::testVideoFile(struct TestFile file) {
+    VideoCapture cap = VideoCapture(file.path);
 
     if (!cap.isOpened()) {
-        cout << "Failed to open file " << filePath << endl;
-        continue;
+        cout << "Failed to open file " << file.path << endl;
+        return TestResult { file, -1, -1 };
     }
 
-    cout << "Testing - " << filePath << endl;
+    cout << "Testing - " << file.path << endl;
 
     if(removeBackground) {
         /// Crashes after first video
         //backgroundRemover = new LBP();
     }
 
-    int positives, falseNegatives, misses;
+    int positives = 0;
+    int falseNegatives = 0;
+    int misses = 0;
     Mat frame, resizedFrame;
-    LBP *backgroundRemover;
+    BackgroundRemover *backgroundRemover;
+
+    double totalTime = 0.0;
 
     // Loop through every frame
     for(;;) {
@@ -79,28 +90,31 @@ TestResult* CascadeClassifierTester::testVideoFile(struct TestFile file) {
 
         frame = clampFrameSize(&frame, Size(96, 96), Size(256, 256));
 
-        vector<Rect> found;
+        struct timeval startT, endT;
+        gettimeofday(&startT, NULL);
+        vector<Rect> found = handleFrame(frame, backgroundRemover, positives, misses, falseNegatives);
+        gettimeofday(&endT, NULL);
 
-        if(removeBackground && backgroundRemover != nullptr) {
-            backgroundRemover->handleNewFrame(frame);
+        double dur = (double)endT.tv_usec - (double)startT.tv_usec;
+        dur /= 1000000.0;
+
+        if(dur > 0) {
+            totalTime += dur;
         }
 
-        // Equalize histogram to make detection easier
-        //equalizeHist(frame, frame);
-
-        classifier.detectMultiScale(frame, found, 1.1, 3, 0|CASCADE_SCALE_IMAGE,
-                                         Size(windowWidth, windowHeight));
-
         if(found.size() > 0) {
-            if(found.size >= file.peopleCount) {
+            if(found.size() >= file.peopleCount) {
                 positives += file.peopleCount;
-                falseNegatives++;
+
+                if(found.size() > file.peopleCount) {
+                    falseNegatives++;
+                }
             } else {
-                positives += found.size;
-                misses += file.peopleCount - found.size;
+                positives += found.size();
+                misses += file.peopleCount - found.size();
             }
 
-            for(int i = 0; i < found.size(); i++) {
+            for(size_t i = 0; i < found.size(); i++) {
                 Rect r = found.at(i);
 
                 rectangle(frame, r.tl(), r.br(), Scalar(0, 255, 0), 1);
@@ -108,14 +122,35 @@ TestResult* CascadeClassifierTester::testVideoFile(struct TestFile file) {
         } else {
             misses += file.peopleCount;
         }
-
+        //printf("Found %d, postiives %d\n", found.size(), positives);
         imshow("Test", frame);
     }
 
-    float detectionRate = positives / (float)(cap.get(CV_CAP_PROP_FRAME_COUNT) * file.peopleCount);
-    float falseNegativeRate = falseNegatives / (float)cap.get(CV_CAP_PROP_FRAME_COUNT);
+    int frameCount = cap.get(CV_CAP_PROP_FRAME_COUNT);
+    int peopleCount = frameCount * file.peopleCount;
 
-    return struct TestResult { testFiles, detectionRate, falseNegativeRate };
+    float detectionRate = positives / (float)peopleCount;
+    float falseNegativeRate = falseNegatives / (float)frameCount;
+    float avgCalcDuration = totalTime / frameCount;
+
+    //printf("Positives %d, total %d\n", positives, peopleCount);
+    //printf("DR %f FNR %f\n", detectionRate, falseNegativeRate);
+    return TestResult { file, detectionRate, falseNegativeRate, avgCalcDuration };
+}
+
+vector<Rect> CascadeClassifierTester::handleFrame(Mat &frame, BackgroundRemover *bgr, int &positives, int &misses, int &falseNegatives) {
+    vector<Rect> found;
+
+    if(bgr != nullptr) {
+        bgr->onNewFrame(frame);
+    }
+
+    // Equalize histogram to make detection easier
+    //equalizeHist(frame, frame);
+
+    classifier.detectMultiScale(frame, found, 1.1, 3, 0|CASCADE_SCALE_IMAGE,
+                                     Size(windowWidth, windowHeight));
+    return found;
 }
 
 // Resize frame to given limits
@@ -140,20 +175,40 @@ Mat CascadeClassifierTester::clampFrameSize(Mat* frame, Size minSize, Size maxSi
     return newFrame;
 }
 
-vector<string> getFilesInFolder(string& dirName) {
+TestResult CascadeClassifierTester::resultAverage(vector<struct TestResult> results) {
+    TestResult avg;
+
+    for(size_t i = 0; i < results.size(); i++) {
+        avg.detectionRate += results.at(i).detectionRate;
+        avg.falseNegativeRate += results.at(i).falseNegativeRate;
+    }
+
+    avg.detectionRate /= results.size();
+    avg.falseNegativeRate /= results.size();
+    avg.testFile = TestFile { "", 0 };
+
+    return avg;
+};
+
+vector<string> getFilesInFolder(const char* dirName) {
     DIR *dir;
     struct dirent *ent;
 
     dir = opendir(dirName);
 
     if(dir != NULL) {
-        while(ent = readdir(dir) != NULL) {
+        ent = readdir(dir);
+
+        while(ent != NULL) {
             printf("%s\n", ent->d_name);
+            ent = readdir(dir);
         }
         closedir(dir);
     } else {
         cout << "Dir not found" << endl;
     }
+
+    return vector<string> {};
 }
 
 CascadeClassifierTester::~CascadeClassifierTester()

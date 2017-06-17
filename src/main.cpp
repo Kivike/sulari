@@ -23,7 +23,7 @@
 #include "opencv2/objdetect.hpp"
 
 #include "peopleDetector.h"
-#include "LBP.h"
+#include "BackgroundRemover.h"
 #include "CascadeClassifierTester.h"
 
 #include <iostream>
@@ -34,6 +34,7 @@
 using namespace cv;
 using namespace cv::face;
 using namespace std;
+using namespace Testing;
 
 static void read_csv(const string& filename, vector<Mat>& images, vector<int>& labels, char separator = ';') {
     std::ifstream file(filename.c_str(), ifstream::in);
@@ -56,34 +57,41 @@ static void read_csv(const string& filename, vector<Mat>& images, vector<int>& l
 
 static void runTests() {
     CascadeClassifierTester *cct = new CascadeClassifierTester();
-    string cascade = "cascade/cascade_lbp4.xml";
+    string cascade = "cascade/cascade_haar.xml";
 
-    cct->setCascade(cascade, 64, 128);
+    cct->setCascade(cascade, 32, 64);
     cct->enableBgRemoval();
 
-    TestStruct kth = {
-        vector<string>{
-            "videos/kth/daria_walk.avi",
-            "videos/kth/daria_walk2.avi",
-            "videos/kth/lena_walk2.avi"
+    TestSet kth = {
+        vector<struct TestFile>{
+            {"videos/kth/daria_walk.avi", 1},
+            {"videos/kth/ido_walk.avi", 1},
+            {"videos/kth/lena_walk2.avi", 1},
+            {"videos/kth/lyova_walk.avi", 1},
+            {"videos/kth/denis_walk.avi", 1},
+            {"videos/kth/lena_walk1.avi", 1},
+            {"videos/kth/shahar_walk.avi", 1},
+            {"videos/kth/eli_walk.avi", 1},
+            {"videos/kth/moshe_walk.avi", 1},
+            {"videos/kth/ira_walk.avi", 1}
         },
         "KTH"
     };
-    TestStruct ut_interaction = {
-        vector<string>{
-            "videos/ut-interaction/seq1.avi",
-            "videos/ut-interaction/seq2.avi",
-            "videos/ut-interaction/seq3.avi",
-            "videos/ut-interaction/seq4.avi",
-            "videos/ut-interaction/seq5.avi",
-            "videos/ut-interaction/seq6.avi",
-            "videos/ut-interaction/seq7.avi",
-            "videos/ut-interaction/seq8.avi",
-            "videos/ut-interaction/seq9.avi",
-            "videos/ut-interaction/seq10.avi"
+    TestSet ut_interaction = {
+        vector<struct TestFile>{
+            {"videos/ut-interaction/seq1.avi", 2},
+            {"videos/ut-interaction/seq2.avi", 2},
+            {"videos/ut-interaction/seq3.avi", 2},
+            {"videos/ut-interaction/seq4.avi", 2},
+            {"videos/ut-interaction/seq5.avi", 2},
+            {"videos/ut-interaction/seq6.avi", 2},
+            {"videos/ut-interaction/seq7.avi", 2},
+            {"videos/ut-interaction/seq8.avi", 2},
+            {"videos/ut-interaction/seq9.avi", 2},
+            {"videos/ut-interaction/seq10.avi", 2}
         },
-        ""
-    }
+        "ut_interaction"
+    };
 
     cct->runTest(kth);
     cct->runTest(ut_interaction);
@@ -96,13 +104,14 @@ int main(int argc, const char *argv[]) {
 
     if(argc == 1) {
         // NO ARGUMENTS
-        LBP *lbp = new LBP();
-        int exitCode = lbp->testWithVideo("videos/lena_walk2.avi");
+        BackgroundRemover *bg = new BackgroundRemover();
+
+        int exitCode = bg->testWithVideo("videos/lena_walk2.avi");
         exit(exitCode);
     } else if(argc == 2) {
         if(strcmp(argv[1], "lbp")) {
-            LBP lbp;
-            int exitCode = lbp.testWithVideo("videos/lena_walk2.avi");
+            BackgroundRemover *bg = new BackgroundRemover();
+            int exitCode = bg->testWithVideo("videos/lena_walk2.avi");
             exit(exitCode);
         } else if(strcmp(argv[1], "hog")) {
             PeopleDetector pd("videos/lena_walk2.avi");
@@ -113,12 +122,12 @@ int main(int argc, const char *argv[]) {
         bool webCam = strcmp(argv[2], "-webcam");
 
         if(strcmp(argv[1], "lbp")) {
-            LBP lbp;
+            BackgroundRemover *bg = new BackgroundRemover();
             int exitCode;
             if(webCam) {
-                exitCode = lbp.testWithVideo();
+                exitCode = bg->testWithVideo();
             } else {
-                exitCode = lbp.testWithVideo(argv[2]);
+                exitCode = bg->testWithVideo(argv[2]);
             }
             exit(exitCode);
         } else if(strcmp(argv[1], "hog")) {
