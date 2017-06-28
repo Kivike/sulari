@@ -1,16 +1,17 @@
-#include "LBPPixel.h"
+#include "lbppixel.h"
 
 #include "opencv2/core/core.hpp"
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
 
 #include <vector>
-#include "LBP.h"
+#include "lbp.h"
 
 #include <iostream>
 
 /// ALGORITHM SETTINGS
 const float LBPPixel::BACKGROUND_WEIGHT = 0.7;
+///
 
 const unsigned char LBPPixel::FOREGROUND_COLOR = 240;
 const unsigned char LBPPixel::BACKGROUND_COLOR = 0;

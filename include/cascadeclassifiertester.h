@@ -3,7 +3,6 @@
 
 #include "BackgroundRemover.h"
 #include "opencv2/core.hpp"
-#include "opencv2/face.hpp"
 #include "opencv2/highgui.hpp"
 #include "opencv2/imgproc.hpp"
 #include "opencv2/objdetect.hpp"
@@ -11,6 +10,7 @@
 #include <vector>
 #include <string>
 
+<<<<<<< HEAD:include/CascadeClassifierTester.h
 namespace Testing {
     struct TestFile {
         std::string path;
@@ -54,4 +54,44 @@ namespace Testing {
             TestResult resultAverage(std::vector<TestResult>);
     };
 }
+=======
+struct TestFile {
+    std::string path;
+    int peopleCount;
+};
+
+struct TestSet {
+    std::vector<struct TestFile> files;
+    std::string name;
+};
+
+struct TestResult {
+    TestFile testFile;
+    float detectionRate;
+    float falseNegativeRate;
+};
+
+class CascadeClassifierTester
+{
+    public:
+        CascadeClassifierTester();
+        virtual ~CascadeClassifierTester();
+
+        void setTestMaterialFiles(TestSet[]);
+        void setCascade(std::string&, int, int);
+        void enableBgRemoval();
+        void disableBgRemoval();
+        void runTest(struct TestSet);
+    protected:
+
+    private:
+        int windowWidth, windowHeight;
+        bool removeBackground;
+        cv::CascadeClassifier classifier;
+        std::vector<std::string> testMaterial;
+        cv::Mat clampFrameSize(cv::Mat*, cv::Size, cv::Size);
+        TestResult* testVideoFile(struct TestFile);
+};
+
+>>>>>>> dev:include/cascadeclassifiertester.h
 #endif // CASCADECLASSIFIERTESTER_H

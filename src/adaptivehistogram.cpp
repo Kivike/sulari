@@ -1,4 +1,4 @@
-#include "AdaptiveHistogram.h"
+#include "adaptivehistogram.h"
 
 #include <iostream>
 #include <vector>
@@ -12,7 +12,7 @@ const float INITIAL_WEIGHT = 0.01f;
 AdaptiveHistogram::AdaptiveHistogram(int binCount)
 {
     this->bins.resize(binCount);
-    this->weight = 1.0f/binCount;
+    this->weight = 1.0f / binCount;
 }
 
 AdaptiveHistogram::~AdaptiveHistogram()
@@ -26,15 +26,16 @@ void AdaptiveHistogram::setBins(vector<unsigned int> bins) {
 }
 
 void AdaptiveHistogram::updateWithNewData(const vector<unsigned int> &newBins) {
-    for(size_t i = 0; i < bins.size(); i++) {
+    for (size_t i = 0; i < bins.size(); i++) {
         this->bins.at(i) = (BIN_LEARN_RATE * newBins.at(i)) + (1 - BIN_LEARN_RATE) * (this->bins.at(i));
     }
 }
 
 void AdaptiveHistogram::updateWeight(bool match) {
-    if(match) {
+    if (match) {
         weight = WEIGHT_LEARN_RATE + (1 - WEIGHT_LEARN_RATE) * weight;
-    } else {
+    }
+    else {
         weight = (1 - WEIGHT_LEARN_RATE) * weight;
     }
 }

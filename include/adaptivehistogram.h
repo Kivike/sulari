@@ -1,3 +1,4 @@
+#pragma once
 #ifndef ADAPTIVEHISTOGRAM_H
 #define ADAPTIVEHISTOGRAM_H
 
