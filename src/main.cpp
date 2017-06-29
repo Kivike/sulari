@@ -21,16 +21,11 @@
 #include "opencv2/imgproc.hpp"
 #include "opencv2/objdetect.hpp"
 
-<<<<<<< HEAD
-#include "peopleDetector.h"
-#include "BackgroundRemover.h"
-#include "CascadeClassifierTester.h"
-=======
+#include "backgroundremover.h"
 #include "peopledetector.h"
 #include "lbp.h"
 #include "cascadeclassifiertester.h"
 #include "tests.h"
->>>>>>> dev
 
 #include <iostream>
 #include <fstream>
@@ -39,9 +34,41 @@
 
 using namespace cv;
 using namespace std;
-using namespace Testing;
 
-static void read_csv(const string& filename, vector<Mat>& images, vector<int>& labels, char separator = ';') {
+
+static void runTests() {
+    cout << "Run tests" << endl;
+    CascadeClassifierTester *cct = new CascadeClassifierTester();
+
+    std::string cascade = "cascade/cascade_lbp4.xml";
+    cct->setCascade(cascade, 32, 64);
+    cct->enableBgRemoval();
+
+    Tests* tests = new Tests();
+    tests->setTester(cct)->run();
+}
+
+int main(int argc, const char *argv[]) {
+    int exitCode = 0;
+
+    if(argc == 1) {
+        // NO ARGUMENTS
+        BackgroundRemover *bg = new BackgroundRemover();
+
+        exitCode = bg->testWithVideo("videos/kth/lena_walk2.avi");
+    } else if(argc == 2) {
+        cout << argv[1] << endl;
+        if(strcmp(argv[1],"-test") == 0) {
+            runTests();
+        }
+    } else {
+        cout << "Invalid args" << endl;
+    }
+
+    exit(exitCode);
+}
+
+/*static void read_csv(const string& filename, vector<Mat>& images, vector<int>& labels, char separator = ';') {
     std::ifstream file(filename.c_str(), ifstream::in);
     if (!file) {
         string error_message = "No valid input file was given, please check the given filename.";
@@ -58,218 +85,4 @@ static void read_csv(const string& filename, vector<Mat>& images, vector<int>& l
             labels.push_back(atoi(classlabel.c_str()));
         }
     }
-}
-
-static void runTests() {
-    cout << "Run tests" << endl;
-    CascadeClassifierTester *cct = new CascadeClassifierTester();
-<<<<<<< HEAD
-    string cascade = "cascade/cascade_haar.xml";
-=======
-    std::string cascade = "cascade/cascade_lbp4.xml";
->>>>>>> dev
-
-    cct->setCascade(cascade, 32, 64);
-    cct->enableBgRemoval();
-
-<<<<<<< HEAD
-    TestSet kth = {
-        vector<struct TestFile>{
-            {"videos/kth/daria_walk.avi", 1},
-            {"videos/kth/ido_walk.avi", 1},
-            {"videos/kth/lena_walk2.avi", 1},
-            {"videos/kth/lyova_walk.avi", 1},
-            {"videos/kth/denis_walk.avi", 1},
-            {"videos/kth/lena_walk1.avi", 1},
-            {"videos/kth/shahar_walk.avi", 1},
-            {"videos/kth/eli_walk.avi", 1},
-            {"videos/kth/moshe_walk.avi", 1},
-            {"videos/kth/ira_walk.avi", 1}
-        },
-        "KTH"
-    };
-    TestSet ut_interaction = {
-        vector<struct TestFile>{
-            {"videos/ut-interaction/seq1.avi", 2},
-            {"videos/ut-interaction/seq2.avi", 2},
-            {"videos/ut-interaction/seq3.avi", 2},
-            {"videos/ut-interaction/seq4.avi", 2},
-            {"videos/ut-interaction/seq5.avi", 2},
-            {"videos/ut-interaction/seq6.avi", 2},
-            {"videos/ut-interaction/seq7.avi", 2},
-            {"videos/ut-interaction/seq8.avi", 2},
-            {"videos/ut-interaction/seq9.avi", 2},
-            {"videos/ut-interaction/seq10.avi", 2}
-        },
-        "ut_interaction"
-    };
-
-    cct->runTest(kth);
-    cct->runTest(ut_interaction);
-=======
-    Tests* tests = new Tests();
-    tests->setTester(cct)->run();
->>>>>>> dev
-}
-
-int main(int argc, const char *argv[]) {
-    runTests();
-
-    return 0;
-
-    if(argc == 1) {
-        // NO ARGUMENTS
-        BackgroundRemover *bg = new BackgroundRemover();
-
-        int exitCode = bg->testWithVideo("videos/lena_walk2.avi");
-        exit(exitCode);
-    } else if(argc == 2) {
-        if(strcmp(argv[1], "lbp")) {
-            BackgroundRemover *bg = new BackgroundRemover();
-            int exitCode = bg->testWithVideo("videos/lena_walk2.avi");
-            exit(exitCode);
-        } else if(strcmp(argv[1], "hog")) {
-            PeopleDetector pd("videos/lena_walk2.avi");
-            int exitCode = pd.testPeopleDetection();
-            exit(exitCode);
-        }
-    } else if(argc == 3) {  // Second argument is the video used or -webcam
-        bool webCam = strcmp(argv[2], "-webcam");
-
-        if(strcmp(argv[1], "lbp")) {
-            BackgroundRemover *bg = new BackgroundRemover();
-            int exitCode;
-            if(webCam) {
-                exitCode = bg->testWithVideo();
-            } else {
-                exitCode = bg->testWithVideo(argv[2]);
-            }
-            exit(exitCode);
-        } else if(strcmp(argv[1], "hog")) {
-            PeopleDetector pd;
-            if(webCam) {
-                pd = PeopleDetector();
-            } else {
-                pd = PeopleDetector(argv[2]);
-            }
-            int exitCode = pd.testPeopleDetection();
-            exit(exitCode);
-        }
-    } else {
-        // Check for valid command line arguments, print usage
-        // if no arguments were given.
-        if (argc != 4) {
-            cout << "usage: " << argv[0] << " </path/to/haar_cascade> </path/to/csv.ext> </path/to/device id>" << endl;
-            cout << "\t </path/to/haar_cascade> -- Path to the Haar Cascade for face detection." << endl;
-            cout << "\t </path/to/csv.ext> -- Path to the CSV file with the face database." << endl;
-            cout << "\t <device id> -- The webcam device id to grab frames from." << endl;
-            exit(1);
-        }
-    }
-
-    // Get the path to your CSV:
-    //string fn_haar = string(argv[1]);
-    //string fn_csv = string(argv[2]);
-    //int deviceId = atoi(argv[3]);
-    //// These vectors hold the images and corresponding labels:
-    //vector<Mat> images;
-    //vector<int> labels;
-    //// Read in the data (fails if no valid input filename is given, but you'll get an error message):
-    //try {
-    //    read_csv(fn_csv, images, labels);
-    //} catch (cv::Exception& e) {
-    //    cerr << "Error opening file \"" << fn_csv << "\". Reason: " << e.msg << endl;
-    //    // nothing more we can do
-    //    exit(1);
-    //}
-
-    ////cout<<"OpenCV Version used:"<<CV_MAJOR_VERSION<<"."<<CV_MINOR_VERSION<<endl;
-    //// Get the height from the first image. We'll need this
-    //// later in code to reshape the images to their original
-    //// size AND we need to reshape incoming faces to this size:
-    //int im_width = images[0].cols;
-    //int im_height = images[0].rows;
-    //// Create a FaceRecognizer and train it on the given images:
-    //Ptr<BasicFaceRecognizer> model = createFisherFaceRecognizer();
-    //model->train(images, labels);
-    //// That's it for learning the Face Recognition model. You now
-    //// need to create the classifier for the task of Face Detection.
-    //// We are going to use the haar cascade you have specified in the
-    //// command line arguments:
-    ////
-
-    //CascadeClassifier haar_cascade;
-    //haar_cascade.load(fn_haar);
-    //// Get a handle to the Video device:
-    //VideoCapture cap(deviceId);
-    //// Check if we can use this device at all:
-    //if(!cap.isOpened()) {
-    //    cerr << "Capture Device ID " << deviceId << "cannot be opened." << endl;
-    //    return -1;
-    //}
-    //// Holds the current frame from the Video device:
-    //Mat frame;
-
-    //int fps = 60;
-
-    //chrono::milliseconds startingTime = chrono::duration_cast< chrono::milliseconds >( chrono::system_clock::now().time_since_epoch());
-
-    //for(;;) {
-    //    chrono::milliseconds currentTime = chrono::duration_cast< chrono::milliseconds >( chrono::system_clock::now().time_since_epoch());
-    //    if((currentTime - startingTime).count() > 1000 / fps){
-    //        startingTime = chrono::duration_cast< chrono::milliseconds >( chrono::system_clock::now().time_since_epoch());
-
-    //        cap >> frame;
-    //        // Clone the current frame:
-    //        Mat original = frame.clone();
-    //        // Convert the current frame to grayscale:
-    //        Mat gray;
-    //        cvtColor(original, gray, COLOR_BGR2GRAY);
-    //        // Find the faces in the frame:
-    //        vector< Rect_<int> > faces;
-    //        haar_cascade.detectMultiScale(gray, faces);
-    //        // At this point you have the position of the faces in
-    //        // faces. Now we'll get the faces, make a prediction and
-    //        // annotate it in the video. Cool or what?
-    //        for(size_t i = 0; i < faces.size(); i++) {
-    //            // Process face by face:
-    //            Rect face_i = faces[i];
-    //            // Crop the face from the image. So simple with OpenCV C++:
-    //            Mat face = gray(face_i);
-    //            // Resizing the face is necessary for Eigenfaces and Fisherfaces. You can easily
-    //            // verify this, by reading through the face recognition tutorial coming with OpenCV.
-    //            // Resizing IS NOT NEEDED for Local Binary Patterns Histograms, so preparing the
-    //            // input data really depends on the algorithm used.
-    //            //
-    //            // I strongly encourage you to play around with the algorithms. See which work best
-    //            // in your scenario, LBPH should always be a contender for robust face recognition.
-    //            //
-    //            // Since I am showing the Fisherfaces algorithm here, I also show how to resize the
-    //            // face you have just found:
-    //            Mat face_resized;
-    //            cv::resize(face, face_resized, Size(im_width, im_height), 1.0, 1.0, INTER_CUBIC);
-    //            // Now perform the prediction, see how easy that is:
-    //            int prediction = model->predict(face_resized);
-    //            // And finally write all we've found out to the original image!
-    //            // First of all draw a green rectangle around the detected face:
-    //            rectangle(original, face_i, Scalar(0, 255,0), 1);
-    //            // Create the text we will annotate the box with:
-    //            string box_text = format("Prediction = %d", prediction);
-    //            // Calculate the position for annotated text (make sure we don't
-    //            // put illegal values in there):
-    //            int pos_x = std::max(face_i.tl().x - 10, 0);
-    //            int pos_y = std::max(face_i.tl().y - 10, 0);
-    //            // And now put it into the image:
-    //            putText(original, box_text, Point(pos_x, pos_y), FONT_HERSHEY_PLAIN, 1.0, Scalar(0,255,0), 2);
-    //        }
-    //        // Show the result:
-    //        imshow("face_recognizer", original);
-    //    }
-    //    // And display it:
-    //    char key = (char) waitKey(20);
-    //    // Exit this loop on escape:
-    //    if(key == 27)
-    //        break;
-    //}
-    return 0;
-}
+}*/
