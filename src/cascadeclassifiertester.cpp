@@ -21,28 +21,39 @@ CascadeClassifierTester::CascadeClassifierTester()
     //ctor
 }
 
-void CascadeClassifierTester::setCascade(string& file, int width, int height) {
+void CascadeClassifierTester::setCascade(const string& file, int width, int height) {
     classifier.load(file);
+
     this->windowWidth = width;
     this->windowHeight = height;
+
+    printf("Loaded classifier %s (w:%d h:%d)", file.c_str(), width, height);
 }
 
-void CascadeClassifierTester::enableBgRemoval() {
-    removeBackground = true;
+void CascadeClassifierTester::setBackgroundRemover(BackgroundRemover *bgr) {
+    this->backgroundRemover = bgr;
+
+    if(bgr == nullptr) {
+        cout << "Disabled background removal" << endl;
+    } else {
+        cout << "Enabled background removal" << endl;
+    }
 }
 
-void CascadeClassifierTester::disableBgRemoval() {
-    removeBackground = false;
-}
+void CascadeClassifierTester::runTest(struct TestSet* testSet) {
+    int materialSize = testSet->files.size();
 
-void CascadeClassifierTester::runTest(struct TestSet testSet) {
-    int materialSize = sizeof(testSet)/sizeof(testSet.files.at(0));
     vector<struct TestResult*> results;
+    cout << materialSize << " files" << endl;
 
     for(int i = 0; i < materialSize; i++) {
-        struct TestResult *r = testVideoFile(testSet.files.at(i));
+        struct TestResult *r = testVideoFile(testSet->files.at(i));
         results.push_back(r);
     }
+    TestResult setResult = resultAverage(results);
+
+    printf("%s result: detection rate %f, fp rate %f\n",
+           testSet->name.c_str(), setResult.detectionRate, setResult.falseNegativeRate);
 }
 
 TestResult* CascadeClassifierTester::testVideoFile(struct TestFile file) {
@@ -54,18 +65,16 @@ TestResult* CascadeClassifierTester::testVideoFile(struct TestFile file) {
     }
 
     cout << "Testing - " << file.path << endl;
-
-    if(removeBackground) {
-        /// Crashes after first video
-        //backgroundRemover = new LBP();
+    if(this->backgroundRemover) {
+        cout << "Using background removal" << endl;
     }
+    this->backgroundRemover = new BackgroundRemover();
 
     int positives = 0;
     int falseNegatives = 0;
     int misses = 0;
-
-    Mat frame, resizedFrame;
-    LBP *backgroundRemover = nullptr;
+    Mat frame, resizedFrame, ppFrame;
+    double totalTime = 0.0;
 
     // Loop through every frame
     for(;;) {
@@ -79,7 +88,15 @@ TestResult* CascadeClassifierTester::testVideoFile(struct TestFile file) {
             break;
         }
 
-        frame = clampFrameSize(&frame, Size(96, 96), Size(256, 256));
+        cout << "F";
+
+        preprocessFrame(frame, ppFrame);
+
+        struct timeval startT, endT;
+        gettimeofday(&startT, NULL);
+        vector<Rect> found = handleFrame(ppFrame, positives, misses, falseNegatives);
+        cout << '.';
+        gettimeofday(&endT, NULL);
 
         vector<Rect> found;
 
@@ -105,25 +122,60 @@ TestResult* CascadeClassifierTester::testVideoFile(struct TestFile file) {
             for(int i = 0; i < found.size(); i++) {
                 Rect r = found.at(i);
 
-                rectangle(frame, r.tl(), r.br(), Scalar(0, 255, 0), 1);
+                rectangle(ppFrame, r.tl(), r.br(), Scalar(0, 255, 0), 1);
             }
         } else {
             misses += file.peopleCount;
         }
-
-        imshow("Test", frame);
+        //printf("Found %d, postiives %d\n", found.size(), positives);
+        imshow("Test", ppFrame);
     }
 
     float detectionRate = positives / (float)(cap.get(CV_CAP_PROP_FRAME_COUNT) * file.peopleCount);
     float falseNegativeRate = falseNegatives / (float)cap.get(CV_CAP_PROP_FRAME_COUNT);
 
-    TestResult *result = new TestResult;
+    TestResult *result = new TestResult();
     result->detectionRate = detectionRate;
     result->testFile = file;
     result->falseNegativeRate = falseNegativeRate;
 
     return result;
 }
+
+void CascadeClassifierTester::preprocessFrame(Mat &frame, Mat &output) {
+    Mat clampedFrame = clampFrameSize(&frame, Size(96, 96), Size(256, 256));
+    // Convert frame to grayscale
+    cvtColor(clampedFrame, output, CV_BGR2GRAY);
+}
+
+vector<Rect> CascadeClassifierTester::handleFrame(Mat &frame, int &positives, int &misses, int &falseNegatives) {
+    vector<Rect> found;
+
+    if(this->backgroundRemover) {
+        cout << 'r';
+        backgroundRemover->onNewFrame(frame);
+    }
+
+    cout << 'd' << flush;
+    classifier.detectMultiScale(frame, found, 1.1, 3, 0|CASCADE_SCALE_IMAGE,
+                                     Size(windowWidth, windowHeight));
+    return found;
+ }
+
+TestResult CascadeClassifierTester::resultAverage(vector<struct TestResult*> results) {
+    TestResult avg = {};
+
+    for(size_t i = 0; i < results.size(); i++) {
+        avg.detectionRate += results.at(i)->detectionRate;
+        avg.falseNegativeRate += results.at(i)->falseNegativeRate;
+    }
+
+    avg.detectionRate /= results.size();
+    avg.falseNegativeRate /= results.size();
+    avg.testFile = TestFile { "", 0 };
+
+    return avg;
+};
 
 // Resize frame to given limits
 Mat CascadeClassifierTester::clampFrameSize(Mat* frame, Size minSize, Size maxSize) {

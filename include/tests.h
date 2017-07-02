@@ -10,6 +10,9 @@ public:
     Tests* run();
 private:
     CascadeClassifierTester* tester;
+    std::vector<TestSet*> getTestSets();
+    void runSetAll(TestSet*);
+    void runSet(TestSet*);
 };
 
 #endif

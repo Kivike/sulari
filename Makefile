@@ -9,7 +9,7 @@ INC_PARAMS=$(foreach d, $(INC_DIR), -I$d)
 
 sulari: $(OBJ_FILES)
 	echo $(OBJ_FILES)
-	g++ $(OPENCV)  $(CC_FLAGS) $(INC_PARAMS) -o $@ $^ $(LIBS)
+	g++ $(OPENCV) $(CC_FLAGS) $(INC_PARAMS) -o $@ $^ $(LIBS)
 
 obj/%.o: src/%.cpp
 	g++ $(CC_FLAGS) $(LIBS) $(INC_PARAMS) -c $< -o $@
