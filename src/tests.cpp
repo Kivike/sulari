@@ -10,11 +10,6 @@ Tests::Tests() {
 
 }
 
-Tests* Tests::setTester(CascadeClassifierTester* tester) {
-    this->tester = tester;
-    return this;
-}
-
 Tests* Tests::run() {
     vector<TestSet*> sets = getTestSets();
 
@@ -23,10 +18,12 @@ Tests* Tests::run() {
     for(size_t i = 0; i < sets.size(); i++) {
         runSetAll(sets.at(i));
     }
-
     return this;
 }
 
+//
+// Run all test sets with both classifier types and both with and without background removal
+//
 void Tests::runSetAll(TestSet *set) {
     this->tester = new CascadeClassifierTester();
 

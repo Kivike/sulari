@@ -21,8 +21,6 @@
 #include "opencv2/imgproc.hpp"
 #include "opencv2/objdetect.hpp"
 
-#include "peopledetector.h"
-#include "lbp.h"
 #include "cascadeclassifiertester.h"
 #include "tests.h"
 
@@ -34,7 +32,7 @@
 using namespace cv;
 using namespace std;
 
-bool parseArgs(const char *[], string&, bool&, bool&, string&);
+bool parseArgs(int, const char *[], string&, bool&, bool&, string&);
 int runWithParams(const string&, const string&, bool);
 int runTests();
 
@@ -46,44 +44,49 @@ int main(int argc, const char *argv[]) {
     bool removeBg = false;
     bool webcam = true;
 
-    if(argc > 1) {
-        if(parseArgs(argv, filename, webcam, removeBg, classifier)) {
+    if(argc == 1) {
+        // Run with default values
+        exitCode = runWithParams(filename, classifier, removeBg);
+    } else {
+        if(parseArgs(argc, argv, filename, webcam, removeBg, classifier)) {
+            // -test
             exitCode = runTests();
         } else {
             if(classifier == "" && !removeBg) {
                 cout << "Nothing to do; -c [classifier] to set classifier";
                 cout << " and/or -bg to use background removal" << endl;
             } else {
+                // Run with given parameters
                 exitCode = runWithParams(filename, classifier, removeBg);
             }
         }
     }
-
     return exitCode;
 }
 
 //
 // Return true if -test arg is set (using tests.cpp)
-bool parseArgs(const char *argv[], string &filename, bool& webcam, bool& removeBg, string& classifier) {
-    for(size_t i = 0; i < sizeof(*argv)/sizeof(*argv[0]); i++) {
+bool parseArgs(int argc, const char *argv[], string &filename, bool& webcam, bool& removeBg, string& classifier) {
+    cout << argc << endl;
+
+    for(int i = 0; i < argc; i++) {
         if(argv[i][0] == '-') {
+            cout << argv[i] << endl;
+
             if(!strcmp(argv[i], "-test")) {
                 return true;
+            } else if(!strcmp(argv[i], "-f")) {
+                filename = *argv[i+1];
+                continue;
+            } else if(!strcmp(argv[i], "-c")) {
+                classifier = *argv[i+1];
+                continue;
+            } else if(!strcmp(argv[i], "-bg")) {
+                removeBg = true;
+                continue;
+            } else {
+                printf("Unknown argument %s\n", argv[i]);
             }
-            /*switch(argv[i]) {
-                case '-test':
-                    return true;
-                case '-f':
-                    filename = *argv[i+1];
-                    break;
-                case '-classifier':
-                case '-c':
-                    classifier = *argv[i+1];
-                    break;
-                case '-bg':
-                    removeBg = true;
-                    break;
-            }*/
         }
     }
     return false;
@@ -99,31 +102,12 @@ int runTests() {
 int runWithParams(const string &filename, const string &classifier, bool removeBg) {
     CascadeClassifierTester *cct = new CascadeClassifierTester();
 
-    if(classifier != nullptr)
-        cct->setCascade(classifier, 32, 64);
+    cout << "Running with given parameters" << endl;
 
-    if(removeBg)
-        cct->setBackgroundRemover(new BackgroundRemover());
+    cct->setCascade(classifier, 32, 64);
 
-    Tests().setTester(cct)->run();
+    if(removeBg) cct->setBackgroundRemover(new BackgroundRemover());
+
+    
     return 0;
 }
-
-/*static void read_csv(const string& filename, vector<Mat>& images, vector<int>& labels, char separator = ';') {
-    std::ifstream file(filename.c_str(), ifstream::in);
-    if (!file) {
-        string error_message = "No valid input file was given, please check the given filename.";
-        CV_Error(Error::StsBadArg, error_message);
-    }
-    string line, path, classlabel;
-    while (getline(file, line)) {
-        stringstream liness(line);
-        getline(liness, path, separator);
-        getline(liness, classlabel);
-        if(!path.empty() && !classlabel.empty()) {
-            images.push_back(imread(path, 0));
-            images.push_back(imread(path, 0));
-            labels.push_back(atoi(classlabel.c_str()));
-        }
-    }
-}*/

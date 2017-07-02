@@ -44,7 +44,7 @@ void CascadeClassifierTester::setBackgroundRemover(BackgroundRemover *bgr) {
 void CascadeClassifierTester::runTest(struct TestSet* testSet) {
     int materialSize = testSet->files.size();
 
-    vector<struct TestResult*> results;
+    vector<struct TestResult*> results = {};
     cout << materialSize << " files" << endl;
 
     for(int i = 0; i < materialSize; i++) {
@@ -94,7 +94,6 @@ TestResult* CascadeClassifierTester::testVideoFile(struct TestFile file) {
         struct timeval startT, endT;
         gettimeofday(&startT, NULL);
         vector<Rect> found = handleFrame(ppFrame, positives, misses, falseNegatives);
-        cout << '.';
         gettimeofday(&endT, NULL);
 
         if(found.size() > 0) {
@@ -136,7 +135,7 @@ void CascadeClassifierTester::preprocessFrame(Mat &frame, Mat &output) {
 }
 
 vector<Rect> CascadeClassifierTester::handleFrame(Mat &frame, int &positives, int &misses, int &falseNegatives) {
-    vector<Rect> found;
+    vector<Rect> found = vector<Rect>();
 
     if(this->backgroundRemover) {
         backgroundRemover->onNewFrame(frame);
@@ -182,24 +181,6 @@ Mat CascadeClassifierTester::clampFrameSize(Mat* frame, Size minSize, Size maxSi
     Mat newFrame;
     resize(*frame, newFrame, Size(frame->cols*multiplier, frame->rows*multiplier));
     return newFrame;
-}
-
-vector<string> getFilesInFolder(const char* dirName) {
-    DIR *dir;
-    struct dirent *ent;
-
-    dir = opendir(dirName);
-
-    if (dir == NULL) {
-        cout << "Directory not found" << endl;
-        return vector<string>();
-    }
-
-    while ((ent = readdir(dir)) != NULL) {
-        printf("%s\n", ent->d_name);
-    }
-
-    closedir(dir);
 }
 
 CascadeClassifierTester::~CascadeClassifierTester()

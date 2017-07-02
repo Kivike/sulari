@@ -194,7 +194,6 @@ void BackgroundRemover::onNewFrame(Mat& frame) {
         initLBPPixels(frame.rows, frame.cols, 3);
     }
 
-
     lbp->calculateFeatureDescriptors(pixels, frame, LBP::DESCRIPTOR_RADIUS, LBP::NEIGHBOUR_COUNT);
     int startRow = LBP::DESCRIPTOR_RADIUS;
     int rowInc = 1;
@@ -204,13 +203,11 @@ void BackgroundRemover::onNewFrame(Mat& frame) {
         rowInc++;
     }
 
-    vector<thread> threads;
-    cout << "1" << flush;
+    vector<thread> threads = {};
     // Handle every row in a seperate thread
     for(unsigned int i = startRow; i < frame.rows - LBP::DESCRIPTOR_RADIUS; i+=rowInc) {
         threads.push_back(thread(handleFrameRow, lbp, i, pixels));
     }
-    cout << "2" << flush;
     for(auto& th: threads) th.join();
 }
 
