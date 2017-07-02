@@ -2,9 +2,7 @@
 #define LBP_H
 
 #include "opencv2/core/core.hpp"
-
 #include <vector>
-
 #include "lbppixel.h"
 
 class LBP {
@@ -21,11 +19,11 @@ public:
     LBP();
     virtual ~LBP();
     int testWithVideo();
-    int testWithVideo(const cv::String&);
+    int testWithVideo(const std::string&);
     static float getHistogramProximity(const std::vector<unsigned int>&, const std::vector<unsigned int>&);
     static void printHistogram(const std::vector<unsigned int>&);
     void handleNewFrame(cv::Mat&);
-    vector<unsigned int> calculateHistogram(LBPPixel*);
+    std::vector<unsigned int> calculateHistogram(LBPPixel*);
     void calculateFeatureDescriptors(cv::Mat&);
     void calculateFeatureDescriptors(cv::Mat*, cv::Mat&, int, int);
 
@@ -33,18 +31,18 @@ protected:
 
 private:
     std::vector<LBPPixel*> backgroundPixels;
-    // Lookup array
-    // [pattern] = class/bin
-    std::vector<unsigned int> uniformPatterns;
     long frameCount;
+    cv::Mat* pixels;
 
-    void genUniformPatternClasses(std::vector<unsigned int>&, unsigned int);
+    // Lookup array: [pattern] = class/bin
+    std::vector<unsigned int> uniformPatterns;
 
+    void genUniformPatternClasses(unsigned int);
 
     cv::Mat* combineFrames(cv::Mat&, cv::Mat&);
     cv::Mat* getDescriptorMat();
     cv::Mat* createMovementMatrix();
-    cv::Mat* pixels;
+
     void initLBPPixels(int, int, int);
     void setHistogramNeighbours(LBPPixel*);
     void showOutputVideo(cv::Mat&, bool);

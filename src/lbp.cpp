@@ -19,14 +19,14 @@ using namespace cv;
 
 // How close must histograms be to each other for them to be considered
 // similar
-const float LBP::HISTOGRAM_PROXIMITY_THRESHOLD = 0.9f;
+const float LBP::HISTOGRAM_PROXIMITY_THRESHOLD = 0.8f; // 0.9f
 
 //!ALGORITHM SETTINGS
 // How close to each other can pixel gray-scale values be
 // while still considering them the same
 const int LBP::PIXEL_VALUE_TOLERANCE = 15;
 // Currently the region is a X*X square
-const int LBP::HISTOGRAM_REGION_SIZE = 14;
+const int LBP::HISTOGRAM_REGION_SIZE = 12;
 // If set to true, only every other half of rows are handled on each frame
 const bool LBP::INTERLACE = false;
 const unsigned int LBP::NEIGHBOUR_COUNT = 6;
@@ -49,7 +49,7 @@ LBP::LBP()
     //<vector<vector<unsigned int>> bins(BIN_COUNT);
     pixels = nullptr;   // LBPPixel* Mat will be initialized on first frame
 
-    genUniformPatternClasses(uniformPatterns, LBP::NEIGHBOUR_COUNT);
+    genUniformPatternClasses(LBP::NEIGHBOUR_COUNT);
 }
 
 LBP::~LBP()
@@ -57,69 +57,10 @@ LBP::~LBP()
     //dtor
 }
 
-int LBP::testWithVideo(const String &filename) {
- //   VideoCapture cap;
-
- //   if(filename.empty()) {
- //       // Capture from webcam if no video is given
- //       cout << "Testing LBP with webcam" << endl;
- //       cap = VideoCapture(-1);
- //   } else {
- //       cout << "Testing LBP with file " + filename << endl;
- //       cap = VideoCapture(filename);
- //   }
-
-	//if (!cap.isOpened()) {
- //       cout << "Failed to setup camera/video" << endl;
- //       return -1;
-	//}
-
- //   Mat frame, greyFrame, movementMatrix, combinedFrame;
-
- //   for(;;) {
- //       // And display it:
- //       char key = (char) waitKey(20);
- //       // Exit this loop on escape:
- //       if(key == 27)
- //           break;
-
- //       cap >> frame;
-
- //       if(!frame.data) {
- //           cap.set(CV_CAP_PROP_POS_FRAMES, 0);
- //           continue;
- //       }
-
- //       frameCount++;
-
- //       // Convert frame to grayscale
- //       cvtColor(frame, greyFrame, CV_BGR2GRAY);
-
- //       // Timing structs for performance monitoring
- //       struct timeval startT, endT;
- //       gettimeofday(&startT, NULL);
- //       handleNewFrame(greyFrame);  // ACTUAL ALGORITHM
- //       gettimeofday(&endT, NULL);
-
- //       if(PRINT_FRAMERATE && frameCount % 3 == 0) {
- //           float seconds = (endT.tv_usec - startT.tv_usec) / 1000000.0f;
- //           cout << 1/seconds << "fps" << endl;
- //       }
-
- //       showOutputVideo(greyFrame, LBP::COMBINE_FRAMES);
- //   }
-    return 0;
-}
-
-int LBP::testWithVideo() {
-    return this->testWithVideo("");
-}
-
-void LBP::genUniformPatternClasses(vector<unsigned int> &patterns, unsigned int neighbours) {
+void LBP::genUniformPatternClasses(unsigned int neighbours) {
     int totalPatterns = pow(2, neighbours);
-    patterns = vector<unsigned int>(totalPatterns);
-    cout << "Generate pattern classes" << endl;
-    cout << "Using " << neighbours << " neighbours -> " << totalPatterns << " patterns" << endl;
+    uniformPatterns = vector<unsigned int>(totalPatterns);
+    //cout << "Using " << neighbours << " neighbours -> " << totalPatterns << " patterns" << endl;
 
     for(unsigned int startPos = 0; startPos < neighbours; startPos++) {
         for(unsigned int bit_count = 1; bit_count < neighbours; bit_count++) {
@@ -136,50 +77,13 @@ void LBP::genUniformPatternClasses(vector<unsigned int> &patterns, unsigned int 
                 }
                 pattern |= 1 << curPos;
             }
-            patterns.at(pattern) = bit_count;
+            uniformPatterns.at(pattern) = bit_count;
+            //printf("Pattern %d=%d\n", pattern, bit_count);
         }
     }
 
-    patterns.at(totalPatterns - 1) = neighbours;
-    patterns.at(0) = neighbours;
-}
-
-static void handleFrameRow(LBP* lbp, int row, Mat* pixels) {
-    int cols = pixels->cols;
-
-    for(unsigned int i = LBP::DESCRIPTOR_RADIUS; i < cols - LBP::DESCRIPTOR_RADIUS; i++) {
-        LBPPixel *pixel = pixels->at<LBPPixel*>(row, i);
-
-        vector<unsigned int> newHist = lbp->calculateHistogram(pixel);
-        pixel->isBackground(newHist);
-        pixel->updateAdaptiveHistograms(newHist);
-    }
-}
-
-// Handle new video/capture frame
-void LBP::handleNewFrame(Mat& frame) {
-    if(pixels == nullptr) {
-        initLBPPixels(frame.rows, frame.cols, 3);
-    }
-
-    calculateFeatureDescriptors(pixels, frame, LBP::DESCRIPTOR_RADIUS, LBP::NEIGHBOUR_COUNT);
-
-    int startRow = LBP::DESCRIPTOR_RADIUS;
-    int rowInc = 1;
-
-    if(INTERLACE) {
-        startRow += frameCount % 2;
-        rowInc++;
-    }
-
-    vector<thread> threads;
-
-    // Handle every row in a seperate thread
-    for(unsigned int i = startRow; i < frame.rows - LBP::DESCRIPTOR_RADIUS; i+=rowInc) {
-        threads.push_back(thread(handleFrameRow, this, i, pixels));
-    }
-
-    for(auto& th: threads) th.join();
+    uniformPatterns.at(totalPatterns - 1) = neighbours;
+    uniformPatterns.at(0) = neighbours;
 }
 
 // Create pixels and connect histogram neighbours
@@ -354,10 +258,11 @@ vector<unsigned int> LBP::calculateHistogram(LBPPixel *pixel) {
 
     vector<LBPPixel*> neighbours = pixel->getHistogramNeighbours();
     unsigned int n_size = neighbours.size();
+    unsigned int uniformClass, desc;
 
     for(size_t i = 0; i < n_size; i++) {
-        unsigned int desc = neighbours.at(i)->getDescriptor();
-        unsigned int uniformClass = uniformPatterns.at(desc);
+        desc = neighbours.at(i)->getDescriptor();
+        uniformClass = uniformPatterns.at(desc);
         histogram.at(uniformClass)++;
     }
 

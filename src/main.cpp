@@ -67,12 +67,8 @@ int main(int argc, const char *argv[]) {
 //
 // Return true if -test arg is set (using tests.cpp)
 bool parseArgs(int argc, const char *argv[], string &filename, bool& webcam, bool& removeBg, string& classifier) {
-    cout << argc << endl;
-
     for(int i = 0; i < argc; i++) {
         if(argv[i][0] == '-') {
-            cout << argv[i] << endl;
-
             if(!strcmp(argv[i], "-test")) {
                 return true;
             } else if(!strcmp(argv[i], "-f")) {
@@ -94,8 +90,13 @@ bool parseArgs(int argc, const char *argv[], string &filename, bool& webcam, boo
 
 int runTests() {
     cout << "Run tests" << endl;
-    Tests* tests = new Tests();
-    tests->run();
+    try {
+        Tests* tests = new Tests();
+        tests->run();
+    } catch(const std::out_of_range& e) {
+        cout << "OUT OF RANGE ERROR" << endl;
+    }
+
     return 0;
 }
 
@@ -106,8 +107,14 @@ int runWithParams(const string &filename, const string &classifier, bool removeB
 
     cct->setCascade(classifier, 32, 64);
 
-    if(removeBg) cct->setBackgroundRemover(new BackgroundRemover());
+    if(removeBg) {
+        cct->enableBgRemoval();
+    } else {
+        cct->disableBgRemoval();
+    }
 
-    
+    if(filename.length() == 0) {
+        //cct->
+    }
     return 0;
 }

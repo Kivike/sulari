@@ -1,7 +1,7 @@
 CPP_FILES = $(wildcard src/*.cpp)  $(wildcard src/*/*.cpp)
 OBJ_FILES := $(addprefix obj/,$(notdir $(CPP_FILES:.cpp=.o)))
 OPENCV = `pkg-config opencv --cflags --libs`
-CC_FLAGS := -std=c++11 -g -Wall
+CC_FLAGS := -std=c++11 -g -Wall -O3
 LIBS = -L/usr/local/opencv $(OPENCV) -lpthread
 
 INC_DIR = include

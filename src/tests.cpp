@@ -27,20 +27,16 @@ Tests* Tests::run() {
 void Tests::runSetAll(TestSet *set) {
     this->tester = new CascadeClassifierTester();
 
-    this->tester->setCascade("cascade/cascade_haar.xml", 32, 64);
-    this->tester->setBackgroundRemover(nullptr);
-    runSet(set);
-
     this->tester->setCascade("cascade/cascade_lbp4.xml", 32, 64);
-    this->tester->setBackgroundRemover(nullptr);
+    this->tester->enableBgRemoval();
+    runSet(set);
+    this->tester->disableBgRemoval();
     runSet(set);
 
     this->tester->setCascade("cascade/cascade_haar.xml", 32, 64);
-    this->tester->setBackgroundRemover(new BackgroundRemover());
+    this->tester->disableBgRemoval();
     runSet(set);
-
-    this->tester->setCascade("cascade/cascade_lbp4.xml", 32, 64);
-    this->tester->setBackgroundRemover(new BackgroundRemover());
+    this->tester->enableBgRemoval();
     runSet(set);
 }
 

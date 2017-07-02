@@ -37,21 +37,24 @@ class CascadeClassifierTester
         virtual ~CascadeClassifierTester();
 
         void setTestMaterialFiles(TestSet[]);
-        void setCascade(const string&, int, int);
-        void setBackgroundRemover(BackgroundRemover*);
+        void setCascade(const std::string&, int, int);
+        void disableBgRemoval();
+        void enableBgRemoval();
         void runTest(struct TestSet*);
         TestResult* testVideoFile(struct TestFile);
     protected:
 
     private:
         int windowWidth, windowHeight;
+        bool bgRemovalEnabled;
         BackgroundRemover *backgroundRemover;
-        vector<cv::Rect> handleFrame(cv::Mat&, int&, int&, int&);
+        std::vector<cv::Rect> handleFrame(cv::Mat&, int&, int&, int&);
         cv::CascadeClassifier classifier;
         std::vector<std::string> testMaterial;
         cv::Mat clampFrameSize(cv::Mat*, cv::Size, cv::Size);
         TestResult resultAverage(std::vector<struct TestResult*>);
         void preprocessFrame(cv::Mat&, cv::Mat&);
+        void showOutputFrame(std::vector<cv::Rect>&, cv::Mat&);
 };
 
 #endif // CASCADECLASSIFIERTESTER_H
