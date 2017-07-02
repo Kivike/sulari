@@ -12,7 +12,7 @@
 
 struct TestFile {
     std::string path;
-    int peopleCount;
+    uint peopleCount;
 };
 
 struct TestSet {
@@ -45,13 +45,6 @@ class CascadeClassifierTester
 
     private:
         int windowWidth, windowHeight;
-<<<<<<< Updated upstream
-        bool removeBackground;
-        cv::CascadeClassifier classifier;
-        std::vector<std::string> testMaterial;
-        cv::Mat clampFrameSize(cv::Mat*, cv::Size, cv::Size);
-        TestResult* testVideoFile(struct TestFile);
-=======
         BackgroundRemover *backgroundRemover;
         vector<cv::Rect> handleFrame(cv::Mat&, int&, int&, int&);
         cv::CascadeClassifier classifier;
@@ -59,7 +52,6 @@ class CascadeClassifierTester
         cv::Mat clampFrameSize(cv::Mat*, cv::Size, cv::Size);
         TestResult resultAverage(std::vector<struct TestResult*>);
         void preprocessFrame(cv::Mat&, cv::Mat&);
->>>>>>> Stashed changes
 };
 
 #endif // CASCADECLASSIFIERTESTER_H

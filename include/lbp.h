@@ -9,6 +9,13 @@
 
 class LBP {
 public:
+    static const int PIXEL_VALUE_TOLERANCE;
+    static const int HISTOGRAM_REGION_SIZE;
+    static const unsigned int NEIGHBOUR_COUNT;
+    static const unsigned int BIN_COUNT;
+    static const bool COMBINE_FRAMES;
+    static const bool INTERLACE;
+    static const bool PRINT_FRAMERATE;
     static const float HISTOGRAM_PROXIMITY_THRESHOLD;
     static const unsigned int DESCRIPTOR_RADIUS;
     LBP();
@@ -19,17 +26,12 @@ public:
     static void printHistogram(const std::vector<unsigned int>&);
     void handleNewFrame(cv::Mat&);
     vector<unsigned int> calculateHistogram(LBPPixel*);
+    void calculateFeatureDescriptors(cv::Mat&);
+    void calculateFeatureDescriptors(cv::Mat*, cv::Mat&, int, int);
+
 protected:
 
 private:
-    static const int PIXEL_VALUE_TOLERANCE;
-    static const int HISTOGRAM_REGION_SIZE;
-    static const unsigned int NEIGHBOUR_COUNT;
-    static const unsigned int BIN_COUNT;
-    static const bool COMBINE_FRAMES;
-    static const bool INTERLACE;
-    static const bool PRINT_FRAMERATE;
-
     std::vector<LBPPixel*> backgroundPixels;
     // Lookup array
     // [pattern] = class/bin
@@ -38,8 +40,6 @@ private:
 
     void genUniformPatternClasses(std::vector<unsigned int>&, unsigned int);
 
-    void calculateFeatureDescriptors(cv::Mat&);
-    void calculateFeatureDescriptors(cv::Mat&, int, int);
 
     cv::Mat* combineFrames(cv::Mat&, cv::Mat&);
     cv::Mat* getDescriptorMat();

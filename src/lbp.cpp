@@ -162,7 +162,7 @@ void LBP::handleNewFrame(Mat& frame) {
         initLBPPixels(frame.rows, frame.cols, 3);
     }
 
-    calculateFeatureDescriptors(frame, LBP::DESCRIPTOR_RADIUS, LBP::NEIGHBOUR_COUNT);
+    calculateFeatureDescriptors(pixels, frame, LBP::DESCRIPTOR_RADIUS, LBP::NEIGHBOUR_COUNT);
 
     int startRow = LBP::DESCRIPTOR_RADIUS;
     int rowInc = 1;
@@ -307,7 +307,7 @@ void LBP::calculateFeatureDescriptors(Mat &src) {
 
 // SOURCE: www.bytefish.de/blog/local_binary_patterns/
 // Uses wanted radius and neighbours in circular pattern using interpolation
-void LBP::calculateFeatureDescriptors(Mat &src, int radius, int neighbours) {
+void LBP::calculateFeatureDescriptors(Mat *pixels, Mat &src, int radius, int neighbours) {
     Mat dst = Mat::zeros(src.rows - 2*radius, src.cols - 2*radius, CV_8UC1);
 
     for(int n = 0; n < neighbours; n++) {
@@ -389,5 +389,3 @@ void LBP::printHistogram(const vector<unsigned int> &hist) {
 
     cout << "Hist: " << print << endl;
 }
-
-

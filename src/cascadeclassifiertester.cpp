@@ -12,6 +12,7 @@
 #include <iostream>
 #include <dirent.h>
 #include <vector>
+#include <sys/time.h>
 
 using namespace std;
 using namespace cv;
@@ -27,7 +28,7 @@ void CascadeClassifierTester::setCascade(const string& file, int width, int heig
     this->windowWidth = width;
     this->windowHeight = height;
 
-    printf("Loaded classifier %s (w:%d h:%d)", file.c_str(), width, height);
+    printf("Loaded classifier %s (w:%d h:%d)\n", file.c_str(), width, height);
 }
 
 void CascadeClassifierTester::setBackgroundRemover(BackgroundRemover *bgr) {
@@ -88,8 +89,6 @@ TestResult* CascadeClassifierTester::testVideoFile(struct TestFile file) {
             break;
         }
 
-        cout << "F";
-
         preprocessFrame(frame, ppFrame);
 
         struct timeval startT, endT;
@@ -97,18 +96,6 @@ TestResult* CascadeClassifierTester::testVideoFile(struct TestFile file) {
         vector<Rect> found = handleFrame(ppFrame, positives, misses, falseNegatives);
         cout << '.';
         gettimeofday(&endT, NULL);
-
-        vector<Rect> found;
-
-        if(removeBackground && backgroundRemover) {
-            backgroundRemover->handleNewFrame(frame);
-        }
-
-        // Equalize histogram to make detection easier
-        //equalizeHist(frame, frame);
-
-        classifier.detectMultiScale(frame, found, 1.1, 3, 0|CASCADE_SCALE_IMAGE,
-                                         Size(windowWidth, windowHeight));
 
         if(found.size() > 0) {
             if(found.size() >= file.peopleCount) {
@@ -119,7 +106,7 @@ TestResult* CascadeClassifierTester::testVideoFile(struct TestFile file) {
                 misses += file.peopleCount - found.size();
             }
 
-            for(int i = 0; i < found.size(); i++) {
+            for(size_t i = 0; i < found.size(); i++) {
                 Rect r = found.at(i);
 
                 rectangle(ppFrame, r.tl(), r.br(), Scalar(0, 255, 0), 1);
@@ -152,11 +139,9 @@ vector<Rect> CascadeClassifierTester::handleFrame(Mat &frame, int &positives, in
     vector<Rect> found;
 
     if(this->backgroundRemover) {
-        cout << 'r';
         backgroundRemover->onNewFrame(frame);
     }
 
-    cout << 'd' << flush;
     classifier.detectMultiScale(frame, found, 1.1, 3, 0|CASCADE_SCALE_IMAGE,
                                      Size(windowWidth, windowHeight));
     return found;

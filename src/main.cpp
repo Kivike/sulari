@@ -39,9 +39,7 @@ int runWithParams(const string&, const string&, bool);
 int runTests();
 
 int main(int argc, const char *argv[]) {
-    runTests();
-
-    return 0;
+    int exitCode = 0;
 
     string filename = "";
     string classifier = "cascade/cascade_lbp4.xml";
@@ -61,43 +59,8 @@ int main(int argc, const char *argv[]) {
         }
     }
 
-    if(argc == 1) {
-        // NO ARGUMENTS
-        LBP *lbp = new LBP();
-        int exitCode = lbp->testWithVideo("videos/lena_walk2.avi");
-        exit(exitCode);
-    } else if(argc == 2) {
-        cout << argv[1] << endl;
-        if(strcmp(argv[1],"--tests") == 0) {
-            exitCode = runTests();
-        }
-    } else {
-        // Check for valid command line arguments, print usage
-        // if no arguments were given.
-        if (argc != 4) {
-            cout << "usage: " << argv[0] << " </path/to/haar_cascade> </path/to/csv.ext> </path/to/device id>" << endl;
-            cout << "\t </path/to/haar_cascade> -- Path to the Haar Cascade for face detection." << endl;
-            cout << "\t </path/to/csv.ext> -- Path to the CSV file with the face database." << endl;
-            cout << "\t <device id> -- The webcam device id to grab frames from." << endl;
-            exit(1);
-        }
-    }
-
-    // Get the path to your CSV:
-    //string fn_haar = string(argv[1]);
-    //string fn_csv = string(argv[2]);
-    //int deviceId = atoi(argv[3]);
-    //// These vectors hold the images and corresponding labels:
-    //vector<Mat> images;
-    //vector<int> labels;
-    //// Read in the data (fails if no valid input filename is given, but you'll get an error message):
-    //try {
-    //    read_csv(fn_csv, images, labels);
-    //} catch (cv::Exception& e) {
-    //    cerr << "Error opening file \"" << fn_csv << "\". Reason: " << e.msg << endl;
-    //    // nothing more we can do
-    //    exit(1);
-    //}
+    return exitCode;
+}
 
 //
 // Return true if -test arg is set (using tests.cpp)

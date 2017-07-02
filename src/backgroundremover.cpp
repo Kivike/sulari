@@ -29,14 +29,14 @@ BackgroundRemover::BackgroundRemover()
     }
     //<vector<vector<unsigned int>> bins(BIN_COUNT);
     pixels = nullptr;   // LBPPixel* Mat will be initialized on first frame
-    lbp = new LBP(6, 14);
+    lbp = new LBP();
 }
 
 int BackgroundRemover::testWithVideo() {
     return this->testWithVideo("");
 }
 
-int BackgroundRemover::testWithVideo(const String &filename) {
+int BackgroundRemover::testWithVideo(const string &filename) {
     VideoCapture cap;
 
     if(filename.empty()) {
@@ -96,7 +96,7 @@ void BackgroundRemover::initLBPPixels(int rows, int cols, int histCount) {
 
     for(int i = 0; i < rows; i++) {
         for(int j = 0; j < cols; j++) {
-            pixels->at<LBPPixel*>(i, j) = new LBPPixel(histCount, lbp->getBinCount(), i, j);
+            pixels->at<LBPPixel*>(i, j) = new LBPPixel(histCount, LBP::BIN_COUNT, i, j);
         }
     }
 
@@ -111,7 +111,7 @@ void BackgroundRemover::initLBPPixels(int rows, int cols, int histCount) {
 // pixel: pixel of which to set neighbours for
 
 void BackgroundRemover::setHistogramNeighbours(LBPPixel* pixel) {
-    int halfRegionSize = lbp->getHistogramRegionSize()/2;
+    int halfRegionSize = LBP::HISTOGRAM_REGION_SIZE/2;
 
     int startRow = max(1, pixel->getRow() - halfRegionSize);
     int endRow = min(pixels->rows - 1, pixel->getRow() + halfRegionSize);
@@ -195,7 +195,7 @@ void BackgroundRemover::onNewFrame(Mat& frame) {
     }
 
 
-    LBP::calculateFeatureDescriptors(pixels, frame, LBP::DESCRIPTOR_RADIUS, LBP::NEIGHBOUR_COUNT);
+    lbp->calculateFeatureDescriptors(pixels, frame, LBP::DESCRIPTOR_RADIUS, LBP::NEIGHBOUR_COUNT);
     int startRow = LBP::DESCRIPTOR_RADIUS;
     int rowInc = 1;
 
