@@ -21,9 +21,6 @@
 #include "opencv2/imgproc.hpp"
 #include "opencv2/objdetect.hpp"
 
-#include "backgroundremover.h"
-#include "peopledetector.h"
-#include "lbp.h"
 #include "cascadeclassifiertester.h"
 #include "tests.h"
 
@@ -35,54 +32,89 @@
 using namespace cv;
 using namespace std;
 
-
-static void runTests() {
-    cout << "Run tests" << endl;
-    CascadeClassifierTester *cct = new CascadeClassifierTester();
-
-    std::string cascade = "cascade/cascade_lbp4.xml";
-    cct->setCascade(cascade, 32, 64);
-    cct->enableBgRemoval();
-
-    Tests* tests = new Tests();
-    tests->setTester(cct)->run();
-}
+bool parseArgs(int, const char *[], string&, bool&, bool&, string&);
+int runWithParams(const string&, const string&, bool);
+int runTests();
 
 int main(int argc, const char *argv[]) {
     int exitCode = 0;
 
+    string filename = "";
+    string classifier = "cascade/cascade_lbp4.xml";
+    bool removeBg = false;
+    bool webcam = true;
+
     if(argc == 1) {
-        // NO ARGUMENTS
-        BackgroundRemover *bg = new BackgroundRemover();
-
-        exitCode = bg->testWithVideo("videos/kth/lena_walk2.avi");
-    } else if(argc == 2) {
-        cout << argv[1] << endl;
-        if(strcmp(argv[1],"-test") == 0) {
-            runTests();
-        }
+        // Run with default values
+        exitCode = runWithParams(filename, classifier, removeBg);
     } else {
-        cout << "Invalid args" << endl;
+        if(parseArgs(argc, argv, filename, webcam, removeBg, classifier)) {
+            // -test
+            exitCode = runTests();
+        } else {
+            if(classifier == "" && !removeBg) {
+                cout << "Nothing to do; -c [classifier] to set classifier";
+                cout << " and/or -bg to use background removal" << endl;
+            } else {
+                // Run with given parameters
+                exitCode = runWithParams(filename, classifier, removeBg);
+            }
+        }
     }
-
-    exit(exitCode);
+    return exitCode;
 }
 
-/*static void read_csv(const string& filename, vector<Mat>& images, vector<int>& labels, char separator = ';') {
-    std::ifstream file(filename.c_str(), ifstream::in);
-    if (!file) {
-        string error_message = "No valid input file was given, please check the given filename.";
-        CV_Error(Error::StsBadArg, error_message);
-    }
-    string line, path, classlabel;
-    while (getline(file, line)) {
-        stringstream liness(line);
-        getline(liness, path, separator);
-        getline(liness, classlabel);
-        if(!path.empty() && !classlabel.empty()) {
-            images.push_back(imread(path, 0));
-            images.push_back(imread(path, 0));
-            labels.push_back(atoi(classlabel.c_str()));
+//
+// Return true if -test arg is set (using tests.cpp)
+bool parseArgs(int argc, const char *argv[], string &filename, bool& webcam, bool& removeBg, string& classifier) {
+    for(int i = 0; i < argc; i++) {
+        if(argv[i][0] == '-') {
+            if(!strcmp(argv[i], "-test")) {
+                return true;
+            } else if(!strcmp(argv[i], "-f")) {
+                filename = *argv[i+1];
+                continue;
+            } else if(!strcmp(argv[i], "-c")) {
+                classifier = *argv[i+1];
+                continue;
+            } else if(!strcmp(argv[i], "-bg")) {
+                removeBg = true;
+                continue;
+            } else {
+                printf("Unknown argument %s\n", argv[i]);
+            }
         }
     }
-}*/
+    return false;
+}
+
+int runTests() {
+    cout << "Run tests" << endl;
+    try {
+        Tests* tests = new Tests();
+        tests->run();
+    } catch(const std::out_of_range& e) {
+        cout << "OUT OF RANGE ERROR" << endl;
+    }
+
+    return 0;
+}
+
+int runWithParams(const string &filename, const string &classifier, bool removeBg) {
+    CascadeClassifierTester *cct = new CascadeClassifierTester();
+
+    cout << "Running with given parameters" << endl;
+
+    cct->setCascade(classifier, 32, 64);
+
+    if(removeBg) {
+        cct->enableBgRemoval();
+    } else {
+        cct->disableBgRemoval();
+    }
+
+    if(filename.length() == 0) {
+        //cct->
+    }
+    return 0;
+}

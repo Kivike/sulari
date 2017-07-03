@@ -10,7 +10,7 @@
 #include <iostream>
 
 /// ALGORITHM SETTINGS
-const float LBPPixel::BACKGROUND_WEIGHT = 0.7;
+const float LBPPixel::BACKGROUND_WEIGHT = 0.33;
 ///
 
 const unsigned char LBPPixel::FOREGROUND_COLOR = 240;
@@ -19,13 +19,12 @@ const unsigned char LBPPixel::BACKGROUND_COLOR = 0;
 using namespace std;
 using namespace cv;
 
-unsigned int descriptor = 0;
-
 LBPPixel::LBPPixel(int histogramCount, int binCount, int row, int col) {
     for(int i = 0; i < histogramCount; i++) {
         histograms.push_back(new AdaptiveHistogram(binCount));
     }
 
+    this->descriptor = 0;
     this->row = row;
     this->col = col;
 }

@@ -29,7 +29,7 @@ class LBPPixel
     protected:
 
     private:
-        unsigned char color, descriptor;
+        unsigned int color, descriptor;
         static const unsigned char FOREGROUND_COLOR, BACKGROUND_COLOR;
         /**
          * Threshold weight for considering a pixel background
