@@ -13,8 +13,8 @@ class AdaptiveHistogram
 
         void updateWithNewData(const std::vector<unsigned int>&);
         void updateWeight(bool);
-        float getWeight();
-        std::vector<unsigned int> getBins();
+        float getWeight() const;
+        std::vector<unsigned int> getBins() const;
     protected:
 
     private:

@@ -7,17 +7,10 @@
 
 class LBP {
 public:
-    static const int PIXEL_VALUE_TOLERANCE;
     static const int HISTOGRAM_REGION_SIZE;
-    static const unsigned int NEIGHBOUR_COUNT;
     static const unsigned int BIN_COUNT;
-    static const bool COMBINE_FRAMES;
-    static const bool INTERLACE;
-    static const bool PRINT_FRAMERATE;
-    static const float HISTOGRAM_PROXIMITY_THRESHOLD;
     static const unsigned int DESCRIPTOR_RADIUS;
-    LBP();
-    virtual ~LBP();
+
     int testWithVideo();
     int testWithVideo(const std::string&);
     static float getHistogramProximity(const std::vector<unsigned int>&, const std::vector<unsigned int>&);
@@ -25,19 +18,23 @@ public:
     void handleNewFrame(cv::Mat&);
     std::vector<unsigned int> calculateHistogram(LBPPixel*);
     void calculateFeatureDescriptors(cv::Mat&);
-    void calculateFeatureDescriptors(cv::Mat*, cv::Mat&, int, int);
+    void calculateFeatureDescriptors(cv::Mat*, cv::Mat&);
 
+    LBP();
+    ~LBP() {
+        for(auto p : backgroundPixels) delete p;
+    }
 protected:
-
 private:
+    static const int PIXEL_VALUE_TOLERANCE;
+    static const unsigned int NEIGHBOUR_COUNT;
+
     std::vector<LBPPixel*> backgroundPixels;
     long frameCount;
     cv::Mat* pixels;
 
     // Lookup array: [pattern] = class/bin
-    std::vector<unsigned int> uniformPatterns;
-
-    void genUniformPatternClasses(unsigned int);
+    static std::vector<unsigned int> uniformPatterns;
 
     cv::Mat* combineFrames(cv::Mat&, cv::Mat&);
     cv::Mat* getDescriptorMat();

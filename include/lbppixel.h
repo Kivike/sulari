@@ -8,10 +8,8 @@ class LBPPixel
 {
     public:
         LBPPixel(int, int, int, int);
-        virtual ~LBPPixel();
-
         unsigned char getColor(bool);
-        unsigned char getDescriptor();
+        unsigned char getDescriptor() const;
         bool isBackground(const std::vector<unsigned int>&);
         void setLowestWeightHistogram(std::vector<unsigned int>);
         void setDescriptor(unsigned char);
@@ -24,20 +22,26 @@ class LBPPixel
         void setHistogramNeighbours(const std::vector<LBPPixel*>&);
         std::vector<LBPPixel*> getHistogramNeighbours();
 
-        int getRow();
-        int getCol();
+        int getRow() const;
+        int getCol() const;
+
+        ~LBPPixel() {
+            for(auto p : histograms) delete p;
+            for(auto p : backgroundHistograms) delete p;
+            for(auto p : histogramNeighbours) delete p;
+        }
     protected:
 
     private:
+        int row, col;
         unsigned int color, descriptor;
         static const unsigned char FOREGROUND_COLOR, BACKGROUND_COLOR;
         /**
          * Threshold weight for considering a pixel background
          */
         static const float BACKGROUND_WEIGHT;
-
-        int row, col;
-
+        static const float HISTOGRAM_PROXIMITY_THRESHOLD;
+        
         std::vector<AdaptiveHistogram*> histograms, backgroundHistograms;
         /**
          *  Neighbours in rectangular area from which histogram is calculated from

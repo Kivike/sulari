@@ -11,39 +11,39 @@ const float INITIAL_WEIGHT = 0.01f;
 
 AdaptiveHistogram::AdaptiveHistogram(int binCount)
 {
-    this->bins.resize(binCount);
-    this->weight = 1.0f / binCount;
-}
-
-AdaptiveHistogram::~AdaptiveHistogram()
-{
-    //dtor
+    bins.resize(binCount);
+    weight = 1.0f / binCount;
 }
 
 void AdaptiveHistogram::setBins(vector<unsigned int> bins) {
     this->bins = bins;
-    this->weight = INITIAL_WEIGHT;
+    weight = INITIAL_WEIGHT;
 }
 
 void AdaptiveHistogram::updateWithNewData(const vector<unsigned int> &newBins) {
     for (size_t i = 0; i < bins.size(); i++) {
-        this->bins.at(i) = (BIN_LEARN_RATE * newBins.at(i)) + (1 - BIN_LEARN_RATE) * (this->bins.at(i));
+        bins.at(i) = (BIN_LEARN_RATE * newBins.at(i)) + (1 - BIN_LEARN_RATE) * (bins.at(i));
     }
 }
 
 void AdaptiveHistogram::updateWeight(bool match) {
     if (match) {
+        // Increase weight
         weight = WEIGHT_LEARN_RATE + (1 - WEIGHT_LEARN_RATE) * weight;
-    }
-    else {
+    } else {
+        // Decrease weight
         weight = (1 - WEIGHT_LEARN_RATE) * weight;
     }
 }
 
-float AdaptiveHistogram::getWeight() {
+float AdaptiveHistogram::getWeight() const {
     return weight;
 }
 
-vector<unsigned int> AdaptiveHistogram::getBins() {
+vector<unsigned int> AdaptiveHistogram::getBins() const {
     return bins;
+}
+
+AdaptiveHistogram::~AdaptiveHistogram() {
+    
 }

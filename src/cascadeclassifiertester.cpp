@@ -18,10 +18,7 @@
 using namespace std;
 using namespace cv;
 
-CascadeClassifierTester::CascadeClassifierTester()
-{
-    //ctor
-}
+CascadeClassifierTester::CascadeClassifierTester() {}
 
 void CascadeClassifierTester::setCascade(const string& file, int width, int height) {
     classifier.load(file);
@@ -125,18 +122,18 @@ TestResult* CascadeClassifierTester::testVideoFile(struct TestFile file) {
 
 void CascadeClassifierTester::showOutputFrame(vector<Rect> &found, Mat& frame) {
     Mat bgrFrame;
-    Rect *fgBBox = nullptr;
+    Rect fgBBox;
 
     if(backgroundRemover) {
-        fgBBox = backgroundRemover->getForegroundBoundingBox(frame.cols, frame.rows);
+        fgBBox = *backgroundRemover->getForegroundBoundingBox(frame.cols, frame.rows);
         Mat* movementMatrix = backgroundRemover->createMovementMatrix();
         frame = *backgroundRemover->combineFrames(frame, *movementMatrix);
     }
 
     cvtColor(frame, bgrFrame, CV_GRAY2BGR);
 
-    if(fgBBox != nullptr) {
-        rectangle(bgrFrame, fgBBox->tl(), fgBBox->br(), Scalar(255, 0, 0), 1);
+    if(backgroundRemover) {
+        rectangle(bgrFrame, fgBBox.tl(), fgBBox.br(), Scalar(255, 0, 0), 1);
     }
 
     for(size_t i = 0; i < found.size(); i++) {
@@ -145,17 +142,15 @@ void CascadeClassifierTester::showOutputFrame(vector<Rect> &found, Mat& frame) {
         Point_<int> topLeft = r.tl();
         Point_<int> bottomRight = r.br();
 
-        if(fgBBox != nullptr) {
-            topLeft.x += fgBBox->tl().x;
-            topLeft.y += fgBBox->tl().y;
-            bottomRight.x += fgBBox->tl().x;
-            bottomRight.y += fgBBox->tl().y;
+        if(backgroundRemover) {
+            topLeft.x += fgBBox.tl().x;
+            topLeft.y += fgBBox.tl().y;
+            bottomRight.x += fgBBox.tl().x;
+            bottomRight.y += fgBBox.tl().y;
         }
 
         rectangle(bgrFrame, topLeft, bottomRight, Scalar(0, 255, 0), 1);
     }
-
-    //cout << backgroundRemover->fgPixels.size() << endl;
     imshow("Test", bgrFrame);
 }
 
@@ -215,9 +210,4 @@ Mat CascadeClassifierTester::clampFrameSize(Mat* frame, Size minSize, Size maxSi
     Mat newFrame;
     resize(*frame, newFrame, Size(frame->cols*multiplier, frame->rows*multiplier));
     return newFrame;
-}
-
-CascadeClassifierTester::~CascadeClassifierTester()
-{
-    //dtor
 }

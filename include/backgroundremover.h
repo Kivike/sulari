@@ -21,8 +21,6 @@ public:
     BackgroundRemover();
     BoundingBox *fgBoundingBox;
 
-    int testWithVideo();
-    int testWithVideo(const std::string&);
     void initLBPPixels(int, int, int);
     void setHistogramNeighbours(LBPPixel*);
 
@@ -32,19 +30,19 @@ public:
     cv::Rect* getForegroundBoundingBox(unsigned int, unsigned int);
     void showOutputVideo(cv::Mat&, bool);
 
-    static void handleFrameRow(LBP*, unsigned int, cv::Mat*);
     static void handleFrameRows(BackgroundRemover*, unsigned int, unsigned int, cv::Mat*);
     void onNewFrame(cv::Mat& frame);
-    ~BackgroundRemover();
+    ~BackgroundRemover() {
+        delete lbp;
+        delete fgBoundingBox;
+    }
 protected:
 private:
     static const bool COMBINE_FRAMES;
     static const bool INTERLACE;
-    static const bool PRINT_FRAMERATE;
     static const unsigned int BOUNDING_BOX_PADDING;
     bool useThreading;
     cv::Mat *pixels;
-    cv::Mat *curFrame;
     int frameCount;
 };
 

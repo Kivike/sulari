@@ -22,74 +22,13 @@ using namespace std;
 
 const bool BackgroundRemover::COMBINE_FRAMES = true;
 const bool BackgroundRemover::INTERLACE = false;
-const bool BackgroundRemover::PRINT_FRAMERATE = false;
+
 const unsigned int BackgroundRemover::BOUNDING_BOX_PADDING = 10;
 
 mutex mtx;
 
-BackgroundRemover::BackgroundRemover()
-{
-    //<vector<vector<unsigned int>> bins(BIN_COUNT);
-    pixels = nullptr;   // LBPPixel* Mat will be initialized on first frame
+BackgroundRemover::BackgroundRemover(): pixels(nullptr) {
     lbp = new LBP();
-}
-
-int BackgroundRemover::testWithVideo() {
-    return this->testWithVideo("");
-}
-
-int BackgroundRemover::testWithVideo(const string &filename) {
-    VideoCapture cap;
-
-    if(filename.empty()) {
-        // Capture from webcam if no video is given
-        cout << "Testing LBP with webcam" << endl;
-        cap = VideoCapture(-1);
-    } else {
-        cout << "Testing LBP with file " + filename << endl;
-        cap = VideoCapture(filename);
-    }
-
-	if (!cap.isOpened()) {
-        cout << "Failed to setup camera/video" << endl;
-        return -1;
-	}
-
-    Mat frame, greyFrame, movementMatrix, combinedFrame;
-
-    for(;;) {
-        // And display it:
-        char key = (char) waitKey(20);
-        // Exit this loop on escape:
-        if(key == 27)
-            break;
-
-        cap >> frame;
-
-        if(!frame.data) {
-            cap.set(CV_CAP_PROP_POS_FRAMES, 0);
-            continue;
-        }
-
-        frameCount++;
-
-        // Convert frame to grayscale
-        cvtColor(frame, greyFrame, CV_BGR2GRAY);
-
-        // Timing structs for performance monitoring
-        struct timeval startT, endT;
-        gettimeofday(&startT, NULL);
-        onNewFrame(greyFrame);  // ACTUAL ALGORITHM
-        gettimeofday(&endT, NULL);
-
-        if(PRINT_FRAMERATE && frameCount % 3 == 0) {
-            float seconds = (endT.tv_usec - startT.tv_usec) / 1000000.0f;
-            cout << 1/seconds << "fps" << endl;
-        }
-
-        //showOutputVideo(greyFrame, BackgroundRemover::COMBINE_FRAMES);
-    }
-    return 0;
 }
 
 // Create pixels and connect histogram neighbours
@@ -180,6 +119,7 @@ void BackgroundRemover::showOutputVideo(Mat &frame, bool combine) {
 }
 
 Rect* BackgroundRemover::getForegroundBoundingBox(unsigned int max_x, unsigned int max_y) {
+    // Apply padding and check that box won't go beyond frame
 
     unsigned int x = max((int)fgBoundingBox->startx - (int)BOUNDING_BOX_PADDING, 0);
     unsigned int y = max((int)fgBoundingBox->starty - (int)BOUNDING_BOX_PADDING, 0);
@@ -198,18 +138,17 @@ Rect* BackgroundRemover::getForegroundBoundingBox(unsigned int max_x, unsigned i
 }
 
 void BackgroundRemover::onNewFrame(Mat& frame) {
-    curFrame = &frame;
-
     if(pixels == nullptr) {
         initLBPPixels(frame.rows, frame.cols, 3);
     }
 
-    lbp->calculateFeatureDescriptors(pixels, frame, LBP::DESCRIPTOR_RADIUS, LBP::NEIGHBOUR_COUNT);
+    lbp->calculateFeatureDescriptors(pixels, frame);
     int startRow = LBP::DESCRIPTOR_RADIUS;
     int endRow = frame.rows - LBP::DESCRIPTOR_RADIUS;
     int rowInc = 1;
 
     if(INTERLACE) {
+        // Handle every second row
         startRow += frameCount % 2;
         rowInc++;
     }
@@ -218,7 +157,7 @@ void BackgroundRemover::onNewFrame(Mat& frame) {
     unsigned int threadCount = thread::hardware_concurrency();
     int rowsPerThread = (endRow - startRow) / threadCount;
 
-    thread *threads = new thread[threadCount];
+    thread threads[threadCount];
 
     fgBoundingBox = new BoundingBox();
     fgBoundingBox->startx = frame.cols - LBP::DESCRIPTOR_RADIUS;
@@ -238,6 +177,9 @@ void BackgroundRemover::onNewFrame(Mat& frame) {
     }
 }
 
+/*
+ * Handle rows from startRow to endRow
+ */
 void BackgroundRemover::handleFrameRows(BackgroundRemover *bgr,  unsigned int startRow, unsigned int endRow, Mat* pixels) {
     unsigned int endCol = pixels->cols - LBP::DESCRIPTOR_RADIUS;
     BoundingBox *bbox = bgr->fgBoundingBox;
@@ -248,6 +190,7 @@ void BackgroundRemover::handleFrameRows(BackgroundRemover *bgr,  unsigned int st
             vector<unsigned int> newHist = bgr->lbp->calculateHistogram(pixel);
             if(!pixel->isBackground(newHist)) {
                 mtx.lock();
+                // Update foreground bounding box
                 if(j < bbox->startx) {
                     bbox->startx = j;
                 } else if(j > bbox->endx) {
@@ -263,21 +206,4 @@ void BackgroundRemover::handleFrameRows(BackgroundRemover *bgr,  unsigned int st
             pixel->updateAdaptiveHistograms(newHist);
         }
     }
-}
-
-void BackgroundRemover::handleFrameRow(LBP *lbp, unsigned int row, Mat* pixels) {
-    int cols = pixels->cols;
-
-    for(unsigned int i = LBP::DESCRIPTOR_RADIUS; i < cols - LBP::DESCRIPTOR_RADIUS; i++) {
-        LBPPixel *pixel = pixels->at<LBPPixel*>(row, i);
-
-        vector<unsigned int> newHist = lbp->calculateHistogram(pixel);
-        pixel->isBackground(newHist);
-        pixel->updateAdaptiveHistograms(newHist);
-    }
-}
-
-BackgroundRemover::~BackgroundRemover()
-{
-    //dtor
 }

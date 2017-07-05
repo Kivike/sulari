@@ -6,9 +6,7 @@
 using namespace std;
 using namespace cv;
 
-Tests::Tests() {
-
-}
+Tests::Tests() {}
 
 Tests* Tests::run() {
     vector<TestSet*> sets = getTestSets();
@@ -25,18 +23,18 @@ Tests* Tests::run() {
 // Run all test sets with both classifier types and both with and without background removal
 //
 void Tests::runSetAll(TestSet *set) {
-    this->tester = new CascadeClassifierTester();
+    tester = new CascadeClassifierTester();
 
-    this->tester->setCascade("cascade/cascade_lbp4.xml", 32, 64);
-    this->tester->enableBgRemoval();
+    tester->setCascade("cascade/cascade_lbp4.xml", 32, 64);
+    tester->enableBgRemoval();
     runSet(set);
-    this->tester->disableBgRemoval();
+    tester->disableBgRemoval();
     runSet(set);
 
-    this->tester->setCascade("cascade/cascade_haar.xml", 32, 64);
-    this->tester->disableBgRemoval();
+    tester->setCascade("cascade/cascade_haar.xml", 32, 64);
+    tester->disableBgRemoval();
     runSet(set);
-    this->tester->enableBgRemoval();
+    tester->enableBgRemoval();
     runSet(set);
 }
 

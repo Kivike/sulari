@@ -9,9 +9,14 @@
 
 #include <iostream>
 
-/// ALGORITHM SETTINGS
+/*
+ * ALGORITHM SETTINGS
+ */
 const float LBPPixel::BACKGROUND_WEIGHT = 0.33;
-///
+
+// How close must histograms be to each other for them to be considered
+// similar
+const float LBPPixel::HISTOGRAM_PROXIMITY_THRESHOLD = 0.8f; // 0.9f
 
 const unsigned char LBPPixel::FOREGROUND_COLOR = 240;
 const unsigned char LBPPixel::BACKGROUND_COLOR = 0;
@@ -19,26 +24,18 @@ const unsigned char LBPPixel::BACKGROUND_COLOR = 0;
 using namespace std;
 using namespace cv;
 
-LBPPixel::LBPPixel(int histogramCount, int binCount, int row, int col) {
+LBPPixel::LBPPixel(int histogramCount, int binCount, int row, int col)
+    : row(row), col(col), descriptor(0) {
     for(int i = 0; i < histogramCount; i++) {
         histograms.push_back(new AdaptiveHistogram(binCount));
     }
-
-    this->descriptor = 0;
-    this->row = row;
-    this->col = col;
 }
 
-LBPPixel::~LBPPixel()
-{
-    //dtor
-}
-
-int LBPPixel::getRow() {
+int LBPPixel::getRow() const {
     return row;
 }
 
-int LBPPixel::getCol() {
+int LBPPixel::getCol() const {
     return col;
 }
 
@@ -46,7 +43,7 @@ void LBPPixel::setDescriptor(unsigned char descriptor) {
     this->descriptor = descriptor;
 }
 
-unsigned char LBPPixel::getDescriptor() {
+unsigned char LBPPixel::getDescriptor() const {
     return descriptor;
 }
 
@@ -69,7 +66,7 @@ bool LBPPixel::compareWeight(AdaptiveHistogram *h1, AdaptiveHistogram *h2) {
 }
 
 void LBPPixel::updateHistogramWeights(const vector<unsigned int> &newHist,
-                int bestMatchIndex, float bestMatchProximity) {
+    int bestMatchIndex, float bestMatchProximity) {
     for(size_t i = 0; i < histograms.size(); i++) {
         if(i == (unsigned int)bestMatchIndex) {
             histograms.at(i)->updateWithNewData(newHist);
@@ -88,7 +85,7 @@ void LBPPixel::getBestProximityMatch(const vector<unsigned int> &histogram, int 
     for(size_t i = 0; i < histograms.size(); i++) {
         float proximity = LBP::getHistogramProximity(histograms.at(i)->getBins(), histogram);
 
-        if(proximity > LBP::HISTOGRAM_PROXIMITY_THRESHOLD && proximity > bestProximity) {
+        if(proximity > HISTOGRAM_PROXIMITY_THRESHOLD && proximity > bestProximity) {
             bestHistIndex = i;
             bestProximity = proximity;
         }

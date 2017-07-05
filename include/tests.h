@@ -5,9 +5,12 @@
 
 class Tests {
 public:
-    Tests();
     Tests* setTester(CascadeClassifierTester*);
     Tests* run();
+    Tests();
+    ~Tests() {
+        delete tester;
+    }
 private:
     CascadeClassifierTester* tester;
     std::vector<TestSet*> getTestSets();
