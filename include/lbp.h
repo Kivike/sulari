@@ -1,8 +1,10 @@
 #ifndef LBP_H
 #define LBP_H
 
-#include "opencv2/core/core.hpp"
 #include <vector>
+
+#include "opencv2/core/core.hpp"
+
 #include "lbppixel.h"
 
 class LBP {

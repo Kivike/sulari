@@ -1,11 +1,13 @@
 #ifndef BACKGROUNDREMOVER_H
 #define BACKGROUNDREMOVER_H
 
-#include "lbppixel.h"
-#include "lbp.h"
-#include "opencv2/core/core.hpp"
 #include <mutex>
 #include <vector>
+
+#include "opencv2/core/core.hpp"
+
+#include "lbppixel.h"
+#include "lbp.h"
 
 struct BoundingBox {
     unsigned int startx;

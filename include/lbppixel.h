@@ -1,8 +1,9 @@
 #ifndef LBPPIXEL_H
 #define LBPPIXEL_H
 
-#include "adaptivehistogram.h"
 #include <vector>
+
+#include "adaptivehistogram.h"
 
 class LBPPixel
 {
@@ -20,7 +21,7 @@ class LBPPixel
         void printPosition();
 
         void setHistogramNeighbours(const std::vector<LBPPixel*>&);
-        std::vector<LBPPixel*> getHistogramNeighbours();
+        std::vector<LBPPixel*> getHistogramNeighbours() const;
 
         int getRow() const;
         int getCol() const;
@@ -41,7 +42,7 @@ class LBPPixel
          */
         static const float BACKGROUND_WEIGHT;
         static const float HISTOGRAM_PROXIMITY_THRESHOLD;
-        
+
         std::vector<AdaptiveHistogram*> histograms, backgroundHistograms;
         /**
          *  Neighbours in rectangular area from which histogram is calculated from

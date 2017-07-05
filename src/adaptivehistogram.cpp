@@ -1,7 +1,7 @@
-#include "adaptivehistogram.h"
-
 #include <iostream>
 #include <vector>
+
+#include "adaptivehistogram.h"
 
 using namespace std;
 
@@ -45,5 +45,5 @@ vector<unsigned int> AdaptiveHistogram::getBins() const {
 }
 
 AdaptiveHistogram::~AdaptiveHistogram() {
-    
+
 }

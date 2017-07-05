@@ -29,30 +29,12 @@ void CascadeClassifierTester::setCascade(const string& file, int width, int heig
     printf("Loaded classifier %s (w:%d h:%d)\n", file.c_str(), width, height);
 }
 
-void CascadeClassifierTester::enableBgRemoval() {
-    bgRemovalEnabled = true;
-}
-
-void CascadeClassifierTester::disableBgRemoval() {
-    bgRemovalEnabled = false;
-}
-
-void CascadeClassifierTester::runTest(struct TestSet* testSet) {
-    int materialSize = testSet->files.size();
-
-    vector<struct TestResult*> results = {};
-    cout << materialSize << " files" << endl;
-
-    for(int i = 0; i < materialSize; i++) {
-        struct TestResult *r = testVideoFile(testSet->files.at(i));
-        results.push_back(r);
-    }
-    TestResult setResult = resultAverage(results);
-
-    printf("%s result: detection rate %f, fp rate %f\n",
-           testSet->name.c_str(), setResult.detectionRate, setResult.falseNegativeRate);
-}
-
+/**
+ * Test cascade classifier with video
+ * Uses background removal before classifier if bgRemovalEnabled==true
+ *
+ * @param  file Video file to test
+ */
 TestResult* CascadeClassifierTester::testVideoFile(struct TestFile file) {
     VideoCapture cap = VideoCapture(file.path);
 
@@ -120,6 +102,14 @@ TestResult* CascadeClassifierTester::testVideoFile(struct TestFile file) {
     return result;
 }
 
+void CascadeClassifierTester::enableBgRemoval() {
+    bgRemovalEnabled = true;
+}
+
+void CascadeClassifierTester::disableBgRemoval() {
+    bgRemovalEnabled = false;
+}
+
 void CascadeClassifierTester::showOutputFrame(vector<Rect> &found, Mat& frame) {
     Mat bgrFrame;
     Rect fgBBox;
@@ -143,6 +133,8 @@ void CascadeClassifierTester::showOutputFrame(vector<Rect> &found, Mat& frame) {
         Point_<int> bottomRight = r.br();
 
         if(backgroundRemover) {
+            // found matches were calculated from foreground frame
+            // -> apply offset to match the coordinates in whole frame
             topLeft.x += fgBBox.tl().x;
             topLeft.y += fgBBox.tl().y;
             bottomRight.x += fgBBox.tl().x;
@@ -165,10 +157,11 @@ vector<Rect> CascadeClassifierTester::handleFrame(Mat &frame, int &positives, in
 
     Mat detectionFrame = frame;
 
-    if(this->backgroundRemover) {
+    if(backgroundRemover) {
         backgroundRemover->onNewFrame(frame);
-        Rect fgBBox = *backgroundRemover->getForegroundBoundingBox(frame.cols, frame.rows);
+        Rect fgBBox = *(backgroundRemover->getForegroundBoundingBox(frame.cols, frame.rows));
 
+        // Only detect in area marked as foreground by background remover
         detectionFrame = frame(fgBBox);
     }
     classifier.detectMultiScale(detectionFrame, found, 1.1, 3, 0|CASCADE_SCALE_IMAGE,
@@ -189,7 +182,13 @@ TestResult CascadeClassifierTester::resultAverage(vector<struct TestResult*> res
 
     return avg;
 };
-
+/**
+ * Scales frame size if needed to match the given limits
+ * @param  frame   Frame to scale
+ * @param  minSize Minimum rows & columns
+ * @param  maxSize Maximum rows & columns
+ * @return         Returns scaled frame
+ */
 // Resize frame to given limits
 Mat CascadeClassifierTester::clampFrameSize(Mat* frame, Size minSize, Size maxSize) {
     float multiplier = 1;

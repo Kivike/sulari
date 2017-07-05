@@ -1,13 +1,20 @@
-#include "lbppixel.h"
+/*
+ * Model for one video pixel
+ * Used in background removal
+ *
+ * Pixel has multiple adaptive histograms which have
+ * their weights updated on every frame
+ */
+
+#include <vector>
+#include <iostream>
 
 #include "opencv2/core/core.hpp"
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
 
-#include <vector>
 #include "lbp.h"
-
-#include <iostream>
+#include "lbppixel.h"
 
 /*
  * ALGORITHM SETTINGS
@@ -49,22 +56,28 @@ unsigned char LBPPixel::getDescriptor() const {
 
 void LBPPixel::setHistogramNeighbours(const vector<LBPPixel*> &neighbourPixels) {
     this->histogramNeighbours = neighbourPixels;
-
-    for(size_t i = 0; i < neighbourPixels.size(); i++) {
-        if(neighbourPixels.at(i) == nullptr) {
-            cout << "Setting null as neighbour" << endl;
-        }
-    }
 }
 
-vector<LBPPixel*> LBPPixel::getHistogramNeighbours() {
+vector<LBPPixel*> LBPPixel::getHistogramNeighbours() const {
     return this->histogramNeighbours;
 }
 
+/**
+ * Compare weights of two adaptive histograms
+ * @param  h1
+ * @param  h2
+ * @return bool
+ */
 bool LBPPixel::compareWeight(AdaptiveHistogram *h1, AdaptiveHistogram *h2) {
     return h1->getWeight() > h2->getWeight();
 }
 
+/**
+ * Update adaptive histogram weights based on newly calculated LBP histogram
+ * @param newHist            Histogram from new frame
+ * @param bestMatchIndex     Which adaptive histogram matched new histogram most
+ * @param bestMatchProximity How close was the new histogram to the best match
+ */
 void LBPPixel::updateHistogramWeights(const vector<unsigned int> &newHist,
     int bestMatchIndex, float bestMatchProximity) {
     for(size_t i = 0; i < histograms.size(); i++) {
@@ -77,7 +90,14 @@ void LBPPixel::updateHistogramWeights(const vector<unsigned int> &newHist,
     }
 }
 
-// Check which histogram (if any) matches given histogram the best
+/**
+ * Check which histogram matches given histogram the best
+ * Match must be >HISTOGRAM_PROXIMITY_THRESHOLD to be considered to match at all
+ *
+ * @param histogram     Histogram to check against
+ * @param bestHistIndex Index of best match
+ * @param bestProximity How close the best match is (0.0 - 1.0)
+ */
 void LBPPixel::getBestProximityMatch(const vector<unsigned int> &histogram, int &bestHistIndex, float &bestProximity) {
     bestHistIndex = -1;
     bestProximity = -1.0f;
@@ -92,7 +112,9 @@ void LBPPixel::getBestProximityMatch(const vector<unsigned int> &histogram, int 
     }
 }
 
-// Update histograms based on the new histogram
+/**
+ * Update histograms based on the new histogram
+ */
 void LBPPixel::updateAdaptiveHistograms(const vector<unsigned int> &histogram) {
     int bestHistIndex;
     float bestProximity;
@@ -108,17 +130,24 @@ void LBPPixel::updateAdaptiveHistograms(const vector<unsigned int> &histogram) {
 
 }
 
-// Sort histograms by weight
+/**
+ * Sort histograms by weight
+ */
 void LBPPixel::sortHistograms() {
     sort(histograms.begin(), histograms.end(), compareWeight);
 }
 
-// Set new bins for the histogram with lowest weight
+/**
+ * Set new bins for the histogram with lowest weight
+ * @param hist [description]
+ */
 void LBPPixel::setLowestWeightHistogram(vector<unsigned int> hist) {
     histograms.back()->setBins(hist);
 }
 
-// Update vector of background histograms
+/**
+ * Update vector of background histograms
+ */
 void LBPPixel::updateBackgroundHistograms() {
     backgroundHistograms.clear();
 
@@ -135,11 +164,16 @@ void LBPPixel::updateBackgroundHistograms() {
     }
 }
 
+/**
+ * Check if histogram matches any background histogram
+ * @param  newHist [description]
+ * @return         [description]
+ */
 bool LBPPixel::isBackground(const vector<unsigned int> &newHist) {
     for(size_t i = 0; i < backgroundHistograms.size(); i++) {
         float proximity = LBP::getHistogramProximity(backgroundHistograms.at(i)->getBins(), newHist);
 
-        if(proximity > LBP::HISTOGRAM_PROXIMITY_THRESHOLD) {
+        if(proximity > HISTOGRAM_PROXIMITY_THRESHOLD) {
             setColor(BACKGROUND_COLOR);
             return true;
         }
@@ -153,7 +187,7 @@ unsigned char LBPPixel::getColor(bool weightGrayValue) {
     if(weightGrayValue) {
         return (1 - histograms.at(0)->getWeight()) * 255;
     } else {
-        return this->color;
+        return color;
     }
 }
 

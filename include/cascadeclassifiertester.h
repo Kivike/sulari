@@ -1,14 +1,16 @@
 #ifndef CASCADECLASSIFIERTESTER_H
 #define CASCADECLASSIFIERTESTER_H
 
+#include <vector>
+#include <string>
+
 #include "opencv2/core.hpp"
 #include "opencv2/highgui.hpp"
 #include "opencv2/imgproc.hpp"
 #include "opencv2/objdetect.hpp"
 
 #include "backgroundremover.h"
-#include <vector>
-#include <string>
+
 
 struct TestFile {
     std::string path;
@@ -42,7 +44,6 @@ class CascadeClassifierTester
         void setCascade(const std::string&, int, int);
         void disableBgRemoval();
         void enableBgRemoval();
-        void runTest(struct TestSet*);
         TestResult* testVideoFile(struct TestFile);
     protected:
     private:

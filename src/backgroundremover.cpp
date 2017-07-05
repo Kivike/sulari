@@ -1,21 +1,25 @@
 /**
 * Removes background from video using adaptive LBP
+* Works by comparing area around pixels between frames
+* Once area has stayed same for long enough, pixels is considered background
 */
-
-#include "backgroundremover.h"
-#include "lbp.h"
-#include "lbppixel.h"
 
 #include <thread>
 #include <mutex>
 #include <vector>
+#include <cmath>
+#include <iostream>
+
+#include <execinfo.h>
+#include <sys/time.h>
+
 #include "opencv2/core/core.hpp"
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
-#include <cmath>
-#include <iostream>
-#include <execinfo.h>
-#include <sys/time.h>
+
+#include "backgroundremover.h"
+#include "lbp.h"
+#include "lbppixel.h"
 
 using namespace cv;
 using namespace std;
@@ -31,7 +35,13 @@ BackgroundRemover::BackgroundRemover(): pixels(nullptr) {
     lbp = new LBP();
 }
 
-// Create pixels and connect histogram neighbours
+//
+/**
+ * Create pixels and connect histogram neighbours
+ * @param rows      Rows in frame
+ *  @param cols     Columns in frame
+ * @param histCount How many adaptive histograms does a pixel have
+ */
 void BackgroundRemover::initLBPPixels(int rows, int cols, int histCount) {
     pixels = new Mat(rows, cols, DataType<LBPPixel*>::type);
 
