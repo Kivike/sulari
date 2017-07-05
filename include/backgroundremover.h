@@ -30,7 +30,6 @@ public:
     cv::Mat* createMovementMatrix();
 
     cv::Rect* getForegroundBoundingBox(unsigned int, unsigned int);
-    void showOutputVideo(cv::Mat&, bool);
 
     static void handleFrameRows(BackgroundRemover*, unsigned int, unsigned int, cv::Mat*);
     void onNewFrame(cv::Mat& frame);

@@ -44,7 +44,6 @@ private:
 
     void initLBPPixels(int, int, int);
     void setHistogramNeighbours(LBPPixel*);
-    void showOutputVideo(cv::Mat&, bool);
 };
 
 #endif

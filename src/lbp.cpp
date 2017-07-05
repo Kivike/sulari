@@ -134,20 +134,6 @@ Mat* LBP::combineFrames(Mat& img, Mat& mMatrix) {
     return output;
 }
 
-void LBP::showOutputVideo(Mat &frame, bool combine) {
-    Mat movementMatrix = *createMovementMatrix();
-
-    if(combine) {
-        // Show original (grey scale) video frame and movement detection frame in same image
-        Mat combinedFrame = *combineFrames(frame, movementMatrix);
-
-        imshow("Video", combinedFrame);
-    } else {
-        imshow("Video", frame);
-        imshow("Movement", movementMatrix);
-    }
-}
-
 /**
  * Get Mat (representing the frame) of LBP descriptors
  * @return Matrix of unsigned integers

@@ -114,20 +114,6 @@ Mat* BackgroundRemover::createMovementMatrix() {
     return result;
 }
 
-void BackgroundRemover::showOutputVideo(Mat &frame, bool combine) {
-    Mat movementMatrix = *createMovementMatrix();
-
-    if(combine) {
-        // Show original (grey scale) video frame and movement detection frame in same image
-        Mat combinedFrame = *combineFrames(frame, movementMatrix);
-
-        imshow("Video", combinedFrame);
-    } else {
-        imshow("Video", frame);
-        imshow("Movement", movementMatrix);
-    }
-}
-
 Rect* BackgroundRemover::getForegroundBoundingBox(unsigned int max_x, unsigned int max_y) {
     // Apply padding and check that box won't go beyond frame
 
