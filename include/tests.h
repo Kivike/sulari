@@ -16,6 +16,7 @@ private:
     std::vector<TestSet*> getTestSets();
     void runSetAll(TestSet*);
     void runSet(TestSet*);
+    void printResult(TestResult&);
 };
 
 #endif

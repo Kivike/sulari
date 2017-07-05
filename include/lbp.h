@@ -32,7 +32,6 @@ private:
     static const unsigned int NEIGHBOUR_COUNT;
 
     std::vector<LBPPixel*> backgroundPixels;
-    long frameCount;
     cv::Mat* pixels;
 
     // Lookup array: [pattern] = class/bin

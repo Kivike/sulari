@@ -29,7 +29,8 @@ struct TestSet {
 struct TestResult {
     TestFile testFile;
     float detectionRate;
-    float falseNegativeRate;
+    float falsePositiveRate;
+    float averageFps;
 };
 
 class CascadeClassifierTester
@@ -47,6 +48,7 @@ class CascadeClassifierTester
         TestResult* testVideoFile(struct TestFile);
     protected:
     private:
+        static const bool PRINT_FRAMERATE;
         int windowWidth, windowHeight;
         bool bgRemovalEnabled;
         BackgroundRemover *backgroundRemover;

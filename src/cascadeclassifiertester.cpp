@@ -17,6 +17,9 @@
 
 using namespace std;
 using namespace cv;
+using namespace std::chrono;
+
+const bool CascadeClassifierTester::PRINT_FRAMERATE = true;
 
 CascadeClassifierTester::CascadeClassifierTester() {}
 
@@ -43,10 +46,12 @@ TestResult* CascadeClassifierTester::testVideoFile(struct TestFile file) {
         return 0;
     }
 
-    printf("TEST [BGR:%d] %s\n", bgRemovalEnabled, file.path.c_str());
+    printf("[BGR:%d] %s", bgRemovalEnabled, file.path.c_str());
+    fflush(stdout);
 
+    long frameCount = 0;
     int positives = 0;
-    int falseNegatives = 0;
+    int falsePositives = 0;
     int misses = 0;
     Mat frame, resizedFrame, ppFrame;
     double totalTime = 0.0;
@@ -69,17 +74,23 @@ TestResult* CascadeClassifierTester::testVideoFile(struct TestFile file) {
             break;
         }
 
+        frameCount++;
         preprocessFrame(frame, ppFrame);
 
-        struct timeval startT, endT;
-        gettimeofday(&startT, NULL);
-        vector<Rect> found = handleFrame(ppFrame, positives, misses, falseNegatives);
-        gettimeofday(&endT, NULL);
+        unsigned long t_start, t_frame;
+
+        t_start = std::chrono::system_clock::now().time_since_epoch()
+            / std::chrono::nanoseconds(1);
+        vector<Rect> found = handleFrame(ppFrame, positives, misses, falsePositives);
+        t_frame = (std::chrono::system_clock::now().time_since_epoch()
+            / std::chrono::nanoseconds(1)) - t_start;
+
+        totalTime += t_frame;
 
         if(found.size() > 0) {
             if(found.size() >= file.peopleCount) {
                 positives += file.peopleCount;
-                falseNegatives++;
+                falsePositives++;
             } else {
                 positives += found.size();
                 misses += file.peopleCount - found.size();
@@ -87,17 +98,19 @@ TestResult* CascadeClassifierTester::testVideoFile(struct TestFile file) {
         } else {
             misses += file.peopleCount;
         }
+
         //printf("Found %d, postiives %d\n", found.size(), positives);
         showOutputFrame(found, ppFrame);
     }
 
     float detectionRate = positives / (float)(cap.get(CV_CAP_PROP_FRAME_COUNT) * file.peopleCount);
-    float falseNegativeRate = falseNegatives / (float)cap.get(CV_CAP_PROP_FRAME_COUNT);
+    float falsePositiveRate = falsePositives / (float)cap.get(CV_CAP_PROP_FRAME_COUNT);
 
     TestResult *result = new TestResult();
+    result->averageFps = frameCount / (totalTime / 1000000000);
     result->detectionRate = detectionRate;
     result->testFile = file;
-    result->falseNegativeRate = falseNegativeRate;
+    result->falsePositiveRate = falsePositiveRate;
 
     return result;
 }
@@ -152,7 +165,7 @@ void CascadeClassifierTester::preprocessFrame(Mat &frame, Mat &output) {
     cvtColor(clampedFrame, output, CV_BGR2GRAY);
 }
 
-vector<Rect> CascadeClassifierTester::handleFrame(Mat &frame, int &positives, int &misses, int &falseNegatives) {
+vector<Rect> CascadeClassifierTester::handleFrame(Mat &frame, int &positives, int &misses, int &falsePositives) {
     vector<Rect> found = vector<Rect>();
 
     Mat detectionFrame = frame;
@@ -174,10 +187,10 @@ TestResult CascadeClassifierTester::resultAverage(vector<struct TestResult*> res
 
     for(size_t i = 0; i < results.size(); i++) {
         avg.detectionRate += results.at(i)->detectionRate;
-        avg.falseNegativeRate += results.at(i)->falseNegativeRate;
+        avg.falsePositiveRate += results.at(i)->falsePositiveRate;
     }
     avg.detectionRate /= results.size();
-    avg.falseNegativeRate /= results.size();
+    avg.falsePositiveRate /= results.size();
     avg.testFile = TestFile { "", 0 };
 
     return avg;

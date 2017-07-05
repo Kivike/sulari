@@ -40,7 +40,9 @@ void Tests::runSetAll(TestSet *set) {
 
 void Tests::runSet(TestSet *set) {
     for (size_t i = 0; i < set->files.size(); i++) {
-        this->tester->testVideoFile(set->files.at(i));
+        TestResult *result = tester->testVideoFile(set->files.at(i));
+        printResult(*result);
+        delete result;
     }
 }
 
@@ -71,4 +73,12 @@ vector<TestSet*> Tests::getTestSets() {
     sets.push_back(kth);
     sets.push_back(ut_interaction);
     return sets;
+}
+
+void Tests::printResult(TestResult &result) {
+    printf(" [det: %.2f][falsep: %.2f][fps: %.2f]\n",
+        result.detectionRate,
+        result.falsePositiveRate,
+        result.averageFps
+    );
 }
