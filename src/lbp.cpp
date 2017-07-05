@@ -34,8 +34,10 @@ const int LBP::PIXEL_VALUE_TOLERANCE = 15;
 const int LBP::HISTOGRAM_REGION_SIZE = 12;
 // If set to true, only every other half of rows are handled on each frame
 const unsigned int LBP::NEIGHBOUR_COUNT = 6;
-const unsigned int LBP::BIN_COUNT = LBP::NEIGHBOUR_COUNT + 1;
 const unsigned int LBP::DESCRIPTOR_RADIUS = 2;
+
+
+const unsigned int LBP::BIN_COUNT = LBP::NEIGHBOUR_COUNT + 1;
 
 LBP::LBP(): pixels(nullptr) {}
 
