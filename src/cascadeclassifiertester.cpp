@@ -14,6 +14,7 @@
 #include <dirent.h>
 #include <vector>
 #include <sys/time.h>
+#include <execinfo.h>
 
 using namespace std;
 using namespace cv;
@@ -62,45 +63,53 @@ TestResult* CascadeClassifierTester::testVideoFile(struct TestFile file) {
         backgroundRemover = nullptr;
     }
 
-    // Loop through every frame
-    for(;;) {
-        char key = (char) waitKey(20);
-        // Exit this loop on escape:
-        if(key == 27)
-            break;
-        cap >> frame;
+    try {
+        // Loop through every frame
+        for(;;) {
+            char key = (char) waitKey(20);
+            // Exit this loop on escape:
+            if(key == 27)
+                break;
+            cap >> frame;
 
-        if(!frame.data) {
-            break;
-        }
-
-        frameCount++;
-        preprocessFrame(frame, ppFrame);
-
-        unsigned long t_start, t_frame;
-
-        t_start = std::chrono::system_clock::now().time_since_epoch()
-            / std::chrono::nanoseconds(1);
-        vector<Rect> found = handleFrame(ppFrame, positives, misses, falsePositives);
-        t_frame = (std::chrono::system_clock::now().time_since_epoch()
-            / std::chrono::nanoseconds(1)) - t_start;
-
-        totalTime += t_frame;
-
-        if(found.size() > 0) {
-            if(found.size() >= file.peopleCount) {
-                positives += file.peopleCount;
-                falsePositives++;
-            } else {
-                positives += found.size();
-                misses += file.peopleCount - found.size();
+            if(!frame.data) {
+                break;
             }
-        } else {
-            misses += file.peopleCount;
-        }
 
-        //printf("Found %d, postiives %d\n", found.size(), positives);
-        showOutputFrame(found, ppFrame);
+            //cout << frameCount << " " << flush;
+
+            frameCount++;
+            preprocessFrame(frame, ppFrame);
+
+            unsigned long t_start, t_frame;
+
+            t_start = std::chrono::system_clock::now().time_since_epoch()
+                / std::chrono::nanoseconds(1);
+            vector<Rect> found = handleFrame(ppFrame, positives, misses, falsePositives);
+            t_frame = (std::chrono::system_clock::now().time_since_epoch()
+                / std::chrono::nanoseconds(1)) - t_start;
+
+            totalTime += t_frame;
+
+            size_t found_count = filterFound(found).size();
+
+            if(found_count > 0) {
+                if(found_count  >= file.peopleCount) {
+                    positives += file.peopleCount;
+                    falsePositives++;
+                } else {
+                    positives += found_count;
+                    misses += file.peopleCount - found_count;
+                }
+            } else {
+                misses += file.peopleCount;
+            }
+            showOutputFrame(found, ppFrame);
+        }
+    } catch (exception &e) {
+        cout << "ERROR" << endl;
+        cout << e.what() << endl;
+        exit(5);
     }
 
     float detectionRate = positives / (float)(cap.get(CV_CAP_PROP_FRAME_COUNT) * file.peopleCount);
@@ -115,6 +124,25 @@ TestResult* CascadeClassifierTester::testVideoFile(struct TestFile file) {
     return result;
 }
 
+vector<Rect> CascadeClassifierTester::filterFound(vector<Rect> &found) {
+    vector<Rect> found_filtered;
+
+    for(size_t i = 0; i < found.size(); i++) {
+        Rect r = found.at(i);
+
+        size_t j;
+
+        for(j = 0; j < found.size(); j++) {
+            if(i != j && (r & found.at(j)) == r)
+                break;
+        }
+
+        if(j == found.size())
+            found_filtered.push_back(r);
+    }
+    return found_filtered;
+}
+
 void CascadeClassifierTester::enableBgRemoval() {
     bgRemovalEnabled = true;
 }
@@ -125,18 +153,18 @@ void CascadeClassifierTester::disableBgRemoval() {
 
 void CascadeClassifierTester::showOutputFrame(vector<Rect> &found, Mat& frame) {
     Mat bgrFrame;
-    Rect fgBBox;
+    Rect *fgBBox = nullptr;
 
     if(backgroundRemover) {
-        fgBBox = *backgroundRemover->getForegroundBoundingBox(frame.cols, frame.rows);
+        fgBBox = backgroundRemover->getForegroundBoundingBox(frame.cols, frame.rows);
         Mat* movementMatrix = backgroundRemover->createMovementMatrix();
         frame = *backgroundRemover->combineFrames(frame, *movementMatrix);
     }
 
     cvtColor(frame, bgrFrame, CV_GRAY2BGR);
 
-    if(backgroundRemover) {
-        rectangle(bgrFrame, fgBBox.tl(), fgBBox.br(), Scalar(255, 0, 0), 1);
+    if(backgroundRemover && fgBBox != nullptr) {
+        rectangle(bgrFrame, fgBBox->tl(), fgBBox->br(), Scalar(255, 0, 0), 1);
     }
 
     for(size_t i = 0; i < found.size(); i++) {
@@ -145,13 +173,13 @@ void CascadeClassifierTester::showOutputFrame(vector<Rect> &found, Mat& frame) {
         Point_<int> topLeft = r.tl();
         Point_<int> bottomRight = r.br();
 
-        if(backgroundRemover) {
+        if(backgroundRemover && fgBBox != nullptr) {
             // found matches were calculated from foreground frame
             // -> apply offset to match the coordinates in whole frame
-            topLeft.x += fgBBox.tl().x;
-            topLeft.y += fgBBox.tl().y;
-            bottomRight.x += fgBBox.tl().x;
-            bottomRight.y += fgBBox.tl().y;
+            topLeft.x += fgBBox->tl().x;
+            topLeft.y += fgBBox->tl().y;
+            bottomRight.x += fgBBox->tl().x;
+            bottomRight.y += fgBBox->tl().y;
         }
 
         rectangle(bgrFrame, topLeft, bottomRight, Scalar(0, 255, 0), 1);
@@ -172,13 +200,25 @@ vector<Rect> CascadeClassifierTester::handleFrame(Mat &frame, int &positives, in
 
     if(backgroundRemover) {
         backgroundRemover->onNewFrame(frame);
-        Rect fgBBox = *(backgroundRemover->getForegroundBoundingBox(frame.cols, frame.rows));
+        Rect *fgBBox = backgroundRemover->getForegroundBoundingBox(frame.cols, frame.rows);
 
         // Only detect in area marked as foreground by background remover
-        detectionFrame = frame(fgBBox);
+        try {
+            if(fgBBox != nullptr)
+                detectionFrame = frame(*fgBBox);
+        } catch(exception e) {
+            printf("Failed to crop the frame (%d %d %d %d)\n",
+                fgBBox->x, fgBBox->y, fgBBox->width, fgBBox->height);
+        }
     }
-    classifier.detectMultiScale(detectionFrame, found, 1.1, 3, 0|CASCADE_SCALE_IMAGE,
-                                     Size(windowWidth, windowHeight));
+
+    try {
+        classifier.detectMultiScale(detectionFrame, found, 1.1, 3, 0|CASCADE_SCALE_IMAGE,
+                                         Size(windowWidth, windowHeight));
+    } catch (std::exception e) {
+        printf("Failure when detecting from frame %d %d\n", detectionFrame.cols, detectionFrame.rows);
+    }
+
     return found;
  }
 

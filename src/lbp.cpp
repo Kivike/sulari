@@ -12,6 +12,7 @@
 #include <sys/time.h>
 #include <cmath>
 #include <thread>
+#include <mutex>
 
 #include "opencv2/core/core.hpp"
 #include "opencv2/highgui/highgui.hpp"
@@ -24,14 +25,16 @@
 using namespace std;
 using namespace cv;
 
+mutex LBP::mtx;
+
 /*
  * ALGORITHM SETTINGS
  */
 // How close to each other can pixel gray-scale values be
 // while still considering them the same
-const int LBP::PIXEL_VALUE_TOLERANCE = 15;
+const int LBP::PIXEL_VALUE_TOLERANCE = 8;
 // Currently the region is a X*X square
-const int LBP::HISTOGRAM_REGION_SIZE = 12;
+const int LBP::HISTOGRAM_REGION_SIZE = 15;
 // If set to true, only every other half of rows are handled on each frame
 const unsigned int LBP::NEIGHBOUR_COUNT = 6;
 const unsigned int LBP::DESCRIPTOR_RADIUS = 2;
@@ -66,7 +69,6 @@ vector<unsigned int> genUniformPatternClasses(unsigned int neighbours) {
                 pattern |= 1 << curPos;
             }
             uniformPatterns.at(pattern) = bit_count;
-            //printf("Pattern %d=%d\n", pattern, bit_count);
         }
     }
 
@@ -251,7 +253,6 @@ void LBP::calculateFeatureDescriptors(Mat *pixels, Mat &src) {
  */
 vector<unsigned int> LBP::calculateHistogram(LBPPixel *pixel) {
     vector<unsigned int> histogram(BIN_COUNT);
-
     vector<LBPPixel*> neighbours = pixel->getHistogramNeighbours();
     unsigned int n_size = neighbours.size();
     unsigned int uniformClass, desc;
@@ -259,6 +260,7 @@ vector<unsigned int> LBP::calculateHistogram(LBPPixel *pixel) {
     for(size_t i = 0; i < n_size; i++) {
         desc = neighbours.at(i)->getDescriptor();
         uniformClass = LBP::uniformPatterns.at(desc);
+
         histogram.at(uniformClass)++;
     }
 

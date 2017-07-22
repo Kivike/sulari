@@ -2,6 +2,7 @@
 #define LBP_H
 
 #include <vector>
+#include <mutex>
 
 #include "opencv2/core/core.hpp"
 
@@ -43,6 +44,7 @@ private:
 
     void initLBPPixels(int, int, int);
     void setHistogramNeighbours(LBPPixel*);
+    static std::mutex mtx;
 };
 
 #endif

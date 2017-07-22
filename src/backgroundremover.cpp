@@ -117,10 +117,14 @@ Mat* BackgroundRemover::createMovementMatrix() {
 Rect* BackgroundRemover::getForegroundBoundingBox(unsigned int max_x, unsigned int max_y) {
     // Apply padding and check that box won't go beyond frame
 
-    unsigned int x = max((int)fgBoundingBox->startx - (int)BOUNDING_BOX_PADDING, 0);
-    unsigned int y = max((int)fgBoundingBox->starty - (int)BOUNDING_BOX_PADDING, 0);
-    unsigned int width = fgBoundingBox->endx - x + BOUNDING_BOX_PADDING;
-    unsigned int height = fgBoundingBox->endy - y + BOUNDING_BOX_PADDING;
+    int x = max((int)fgBoundingBox->startx - (int)BOUNDING_BOX_PADDING, 0);
+    int y = max((int)fgBoundingBox->starty - (int)BOUNDING_BOX_PADDING, 0);
+    int width = fgBoundingBox->endx - x + BOUNDING_BOX_PADDING;
+    int height = fgBoundingBox->endy - y + BOUNDING_BOX_PADDING;
+
+    if(x < 0 || y < 0 || width < 0 || height < 0) {
+        return nullptr;
+    }
 
     if(x + width > max_x) {
         width -= (x + width - max_x);
@@ -129,7 +133,7 @@ Rect* BackgroundRemover::getForegroundBoundingBox(unsigned int max_x, unsigned i
     if(y + height > max_y) {
         height -= (y + height - max_y);
     }
-    //printf("BB x%d y%d w%d h%d\n", x, y, width, height);
+
     return new Rect(x, y, width, height);
 }
 
