@@ -34,11 +34,10 @@ mutex LBP::mtx;
 // while still considering them the same
 const int LBP::PIXEL_VALUE_TOLERANCE = 8;
 // Currently the region is a X*X square
-const int LBP::HISTOGRAM_REGION_SIZE = 15;
+const int LBP::HISTOGRAM_REGION_SIZE = 12;
 // If set to true, only every other half of rows are handled on each frame
 const unsigned int LBP::NEIGHBOUR_COUNT = 6;
-const unsigned int LBP::DESCRIPTOR_RADIUS = 2;
-
+const unsigned int LBP::DESCRIPTOR_RADIUS = 3;
 
 const unsigned int LBP::BIN_COUNT = LBP::NEIGHBOUR_COUNT + 1;
 

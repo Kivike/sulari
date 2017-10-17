@@ -9,8 +9,7 @@ const float BIN_LEARN_RATE = 0.01f;
 const float WEIGHT_LEARN_RATE = 0.01f;
 const float INITIAL_WEIGHT = 0.01f;
 
-AdaptiveHistogram::AdaptiveHistogram(int binCount)
-{
+AdaptiveHistogram::AdaptiveHistogram(int binCount) {
     bins.resize(binCount);
     weight = 1.0f / binCount;
 }
@@ -44,6 +43,4 @@ vector<unsigned int> AdaptiveHistogram::getBins() const {
     return bins;
 }
 
-AdaptiveHistogram::~AdaptiveHistogram() {
-
-}
+AdaptiveHistogram::~AdaptiveHistogram() {}

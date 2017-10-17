@@ -25,9 +25,9 @@ using namespace cv;
 using namespace std;
 
 const bool BackgroundRemover::COMBINE_FRAMES = true;
-const bool BackgroundRemover::INTERLACE = false;
+const bool BackgroundRemover::INTERLACE = true;
 
-const unsigned int BackgroundRemover::BOUNDING_BOX_PADDING = 10;
+const unsigned int BackgroundRemover::BOUNDING_BOX_PADDING = 8;
 
 mutex mtx;
 
@@ -98,6 +98,22 @@ Mat* BackgroundRemover::combineFrames(Mat& img, Mat& mMatrix) {
     return output;
 }
 
+Mat* BackgroundRemover::cropBackground(Mat &img, Rect* fgBBox) {
+    Mat *output = new Mat(img.rows, img.cols, CV_8UC1);
+
+    for(int i = 0; i < img.rows; i++) {
+        for(int j = 0; j < img.cols; j++) {
+            if (i < fgBBox->tl().y || j < fgBBox->tl().x ||
+                i > fgBBox->br().y || j > fgBBox->br().x ) {
+                output->at<unsigned char>(i, j) = 0;
+            } else {
+                output->at<unsigned char>(i, j) = img.at<unsigned char>(i, j);
+            }
+        }
+    }
+    return output;
+}
+
 // Create 2-color frame of foreground and background pixels
 Mat* BackgroundRemover::createMovementMatrix() {
     Mat* result = new Mat(pixels->rows, pixels->cols, CV_8UC1);
@@ -125,14 +141,8 @@ Rect* BackgroundRemover::getForegroundBoundingBox(unsigned int max_x, unsigned i
     if(x < 0 || y < 0 || width < 0 || height < 0) {
         return nullptr;
     }
-
-    if(x + width > max_x) {
-        width -= (x + width - max_x);
-    }
-
-    if(y + height > max_y) {
-        height -= (y + height - max_y);
-    }
+    width = max(x + width, max_x);
+    height = max(y + height, max_y);
 
     return new Rect(x, y, width, height);
 }

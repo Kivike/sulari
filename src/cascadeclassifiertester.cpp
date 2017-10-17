@@ -96,7 +96,7 @@ TestResult* CascadeClassifierTester::testVideoFile(struct TestFile file) {
             if(found_count > 0) {
                 if(found_count  >= file.peopleCount) {
                     positives += file.peopleCount;
-                    falsePositives++;
+                    falsePositives += found_count - file.peopleCount;
                 } else {
                     positives += found_count;
                     misses += file.peopleCount - found_count;
@@ -157,8 +157,14 @@ void CascadeClassifierTester::showOutputFrame(vector<Rect> &found, Mat& frame) {
 
     if(backgroundRemover) {
         fgBBox = backgroundRemover->getForegroundBoundingBox(frame.cols, frame.rows);
-        Mat* movementMatrix = backgroundRemover->createMovementMatrix();
-        frame = *backgroundRemover->combineFrames(frame, *movementMatrix);
+
+        if (fgBBox->tl().x >= 0 && fgBBox->tl().y >= 0 &&
+            fgBBox->br().x <= frame.cols && fgBBox->br().y <= frame.rows) {
+                frame = *backgroundRemover->cropBackground(frame, fgBBox);
+            }
+
+        //Mat* movementMatrix = backgroundRemover->createMovementMatrix();
+        //frame = *backgroundRemover->combineFrames(frame, *movementMatrix);
     }
 
     cvtColor(frame, bgrFrame, CV_GRAY2BGR);

@@ -27,6 +27,7 @@ public:
     void setHistogramNeighbours(LBPPixel*);
 
     cv::Mat* combineFrames(cv::Mat&, cv::Mat&);
+    cv::Mat* cropBackground(cv::Mat&, cv::Rect*);
     cv::Mat* createMovementMatrix();
 
     cv::Rect* getForegroundBoundingBox(unsigned int, unsigned int);

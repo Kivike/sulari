@@ -9,7 +9,7 @@ using namespace cv;
 Tests::Tests() {}
 
 Tests* Tests::run() {
-    vector<TestSet*> sets = getTestSets();
+    sets = getTestSets();
 
     cout << "Running " << sets.size() << " test sets" << endl;
 
@@ -25,20 +25,28 @@ Tests* Tests::run() {
 void Tests::runSetAll(TestSet *set) {
     tester = new CascadeClassifierTester();
 
-    tester->setCascade("cascade/cascade_lbp4.xml", 32, 64);
-    tester->enableBgRemoval();
-    runSet(set);
-    tester->disableBgRemoval();
-    runSet(set);
+    testCascade(set, "cascade/haar_02.xml", 20, 40);
+    testCascade(set, "cascade/lbp_02.xml", 20, 40);
+    testCascade(set, "cascade/lbp_05.xml", 20, 40);
+    testCascade(set, "cascade/lbp_01.xml", 20, 40);
+    testCascade(set, "cascade/lbp_03.xml", 20, 40);
+    testCascade(set, "cascade/lbp_04.xml", 20, 40);
+    testCascade(set, "cascade/lbp_06.xml", 20, 40);
+    testCascade(set, "cascade/lbp_07.xml", 20, 40);
+    testCascade(set, "cascade/lbp_08.xml", 20, 40);
+}
 
-    tester->setCascade("cascade/cascade_haar.xml", 32, 64);
-    tester->disableBgRemoval();
-    runSet(set);
+void Tests::testCascade(TestSet *set, const string& file, int width, int height) {
+    tester = new CascadeClassifierTester();
+    tester->setCascade(file, width, height);
     tester->enableBgRemoval();
+    runSet(set);
+    tester->disableBgRemoval();
     runSet(set);
 }
 
 void Tests::runSet(TestSet *set) {
+    cout << "Run set " << set->name << endl;
     for (size_t i = 0; i < set->files.size(); i++) {
         TestResult *result = tester->testVideoFile(set->files.at(i));
         printResult(*result);
@@ -58,11 +66,11 @@ vector<TestSet*> Tests::getTestSets() {
 
     TestSet* ut_interaction = new TestSet("ut_interaction");
     ut_interaction->files = vector<TestFile> {
+        TestFile{ "videos/ut-interaction/seq5.avi", 2 },
         TestFile{ "videos/ut-interaction/seq1.avi", 2 },
         TestFile{ "videos/ut-interaction/seq2.avi", 2 },
         TestFile{ "videos/ut-interaction/seq3.avi", 2 },
         TestFile{ "videos/ut-interaction/seq4.avi", 2 },
-        TestFile{ "videos/ut-interaction/seq5.avi", 2 },
         TestFile{ "videos/ut-interaction/seq6.avi", 2 },
         TestFile{ "videos/ut-interaction/seq7.avi", 2 },
         TestFile{ "videos/ut-interaction/seq8.avi", 2 },
@@ -70,7 +78,7 @@ vector<TestSet*> Tests::getTestSets() {
         TestFile{ "videos/ut-interaction/seq10.avi",  2 }
     };
 
-    sets.push_back(kth);
+    //sets.push_back(kth);
     sets.push_back(ut_interaction);
     return sets;
 }

@@ -24,7 +24,7 @@ const float LBPPixel::BACKGROUND_WEIGHT = 0.5f;
 
 // How close must histograms be to each other for them to be considered
 // similar
-const float LBPPixel::HISTOGRAM_PROXIMITY_THRESHOLD = 0.9f; // 0.9f
+const float LBPPixel::HISTOGRAM_PROXIMITY_THRESHOLD = 0.92f; // 0.9f
 
 const unsigned char LBPPixel::FOREGROUND_COLOR = 240;
 const unsigned char LBPPixel::BACKGROUND_COLOR = 0;
