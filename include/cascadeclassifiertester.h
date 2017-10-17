@@ -57,7 +57,6 @@ class CascadeClassifierTester
         cv::CascadeClassifier classifier;
         std::vector<std::string> testMaterial;
         std::vector<cv::Rect> filterFound(std::vector<cv::Rect>&);
-        cv::Mat clampFrameSize(cv::Mat*, cv::Size, cv::Size);
         TestResult resultAverage(std::vector<struct TestResult*>);
         void preprocessFrame(cv::Mat&, cv::Mat&);
         void showOutputFrame(std::vector<cv::Rect>&, cv::Mat&);

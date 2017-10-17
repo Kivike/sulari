@@ -5,6 +5,7 @@
 #include "cascadeclassifiertester.h"
 #include "lbp.h"
 #include "backgroundremover.h"
+#include "imgutils.h"
 
 #include "opencv2/core/core.hpp"
 #include "opencv2/highgui/highgui.hpp"
@@ -158,13 +159,13 @@ void CascadeClassifierTester::showOutputFrame(vector<Rect> &found, Mat& frame) {
     if(backgroundRemover) {
         fgBBox = backgroundRemover->getForegroundBoundingBox(frame.cols, frame.rows);
 
-        if (fgBBox->tl().x >= 0 && fgBBox->tl().y >= 0 &&
+        if (fgBBox != nullptr && fgBBox->tl().x >= 0 && fgBBox->tl().y >= 0 &&
             fgBBox->br().x <= frame.cols && fgBBox->br().y <= frame.rows) {
                 frame = *backgroundRemover->cropBackground(frame, fgBBox);
             }
 
         //Mat* movementMatrix = backgroundRemover->createMovementMatrix();
-        //frame = *backgroundRemover->combineFrames(frame, *movementMatrix);
+        //frame = *ImgUtils::frameMin(frame, *movementMatrix);
     }
 
     cvtColor(frame, bgrFrame, CV_GRAY2BGR);
@@ -194,7 +195,7 @@ void CascadeClassifierTester::showOutputFrame(vector<Rect> &found, Mat& frame) {
 }
 
 void CascadeClassifierTester::preprocessFrame(Mat &frame, Mat &output) {
-    Mat clampedFrame = clampFrameSize(&frame, Size(96, 96), Size(256, 256));
+    Mat clampedFrame = ImgUtils::clampFrameSize(&frame, Size(96, 96), Size(256, 256));
     // Convert frame to grayscale
     cvtColor(clampedFrame, output, CV_BGR2GRAY);
 }
@@ -241,31 +242,3 @@ TestResult CascadeClassifierTester::resultAverage(vector<struct TestResult*> res
 
     return avg;
 };
-/**
- * Scales frame size if needed to match the given limits
- * @param  frame   Frame to scale
- * @param  minSize Minimum rows & columns
- * @param  maxSize Maximum rows & columns
- * @return         Returns scaled frame
- */
-// Resize frame to given limits
-Mat CascadeClassifierTester::clampFrameSize(Mat* frame, Size minSize, Size maxSize) {
-    float multiplier = 1;
-
-    if(frame->cols < minSize.width || frame->rows < minSize.height){
-        multiplier = minSize.width / (float)frame->cols;
-
-        if(multiplier * frame->rows < minSize.height) {
-            multiplier = minSize.height / (float)frame->rows;
-        }
-    } else if(frame->cols > maxSize.width || frame->rows > maxSize.height) {
-        multiplier = maxSize.width / (float)frame->cols;
-
-        if(multiplier * frame->rows > maxSize.height) {
-            multiplier = maxSize.height / (float)frame->rows;
-        }
-    }
-    Mat newFrame;
-    resize(*frame, newFrame, Size(frame->cols*multiplier, frame->rows*multiplier));
-    return newFrame;
-}

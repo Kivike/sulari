@@ -81,23 +81,6 @@ void BackgroundRemover::setHistogramNeighbours(LBPPixel* pixel) {
     pixel->setHistogramNeighbours(neighbours);
 }
 
-// Combines image and movement matrix
-Mat* BackgroundRemover::combineFrames(Mat& img, Mat& mMatrix) {
-    if(img.rows != mMatrix.rows || img.cols != mMatrix.cols) {
-        return &img;
-    }
-
-    Mat *output = new Mat(img.rows, img.cols, CV_8UC1);
-
-    for(int i = 0; i < img.rows; i++) {
-        for(int j = 0; j < img.cols; j++) {
-            output->at<unsigned char>(i, j) = min(img.at<unsigned char>(i, j),
-                                                  mMatrix.at<unsigned char>(i, j));
-        }
-    }
-    return output;
-}
-
 Mat* BackgroundRemover::cropBackground(Mat &img, Rect* fgBBox) {
     Mat *output = new Mat(img.rows, img.cols, CV_8UC1);
 
@@ -138,7 +121,7 @@ Rect* BackgroundRemover::getForegroundBoundingBox(unsigned int max_x, unsigned i
     int width = fgBoundingBox->endx - x + BOUNDING_BOX_PADDING;
     int height = fgBoundingBox->endy - y + BOUNDING_BOX_PADDING;
 
-    if(x < 0 || y < 0 || width < 0 || height < 0) {
+    if(x < 0 || y < 0) {
         return nullptr;
     }
     if((unsigned int)(x + width) > max_x) {
@@ -146,6 +129,10 @@ Rect* BackgroundRemover::getForegroundBoundingBox(unsigned int max_x, unsigned i
     }
     if((unsigned int)(y + height) > max_y) {
         height -= (y + height - max_y);
+    }
+
+    if(width <= 0 || height <= 0) {
+        return nullptr;
     }
 
     return new Rect(x, y, width, height);

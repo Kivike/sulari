@@ -267,7 +267,7 @@ vector<unsigned int> LBP::calculateHistogram(LBPPixel *pixel) {
 }
 
 /**
- * Calculates how close to eachother histograms are and return float between 0 and 1
+ * Calculates how close to each other histograms are and return float between 0 and 1
  * @param  hist1
  * @param  hist2
  * @return       Returns float between 0.0 (not matching at all) and 1.0 (exactly same)
