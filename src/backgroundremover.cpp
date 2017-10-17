@@ -141,8 +141,12 @@ Rect* BackgroundRemover::getForegroundBoundingBox(unsigned int max_x, unsigned i
     if(x < 0 || y < 0 || width < 0 || height < 0) {
         return nullptr;
     }
-    width = max(x + width, max_x);
-    height = max(y + height, max_y);
+    if((unsigned int)(x + width) > max_x) {
+        width -= (x + width - max_x);
+    }
+    if((unsigned int)(y + height) > max_y) {
+        height -= (y + height - max_y);
+    }
 
     return new Rect(x, y, width, height);
 }
