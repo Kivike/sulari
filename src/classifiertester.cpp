@@ -6,6 +6,7 @@
 #include "lbp.h"
 #include "backgroundremover.h"
 #include "imgutils.h"
+#include "config.h"
 
 #include "opencv2/core/core.hpp"
 #include "opencv2/highgui/highgui.hpp"
@@ -92,7 +93,8 @@ TestResult* CascadeClassifierTester::testVideoFile(struct TestFile file) {
 
             totalTime += t_frame;
 
-            size_t found_count = filterFound(found).size();
+            vector<Rect> foundFiltered = filterFound(found);
+            size_t found_count = foundFiltered.size();
 
             if(found_count > 0) {
                 if(found_count  >= file.peopleCount) {
@@ -105,7 +107,7 @@ TestResult* CascadeClassifierTester::testVideoFile(struct TestFile file) {
             } else {
                 misses += file.peopleCount;
             }
-            showOutputFrame(found, ppFrame);
+            showOutputFrame(foundFiltered, ppFrame);
         }
     } catch (exception &e) {
         cout << "ERROR" << endl;

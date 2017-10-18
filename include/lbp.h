@@ -31,18 +31,20 @@ protected:
 private:
     static const int PIXEL_VALUE_TOLERANCE;
     static const unsigned int NEIGHBOUR_COUNT;
+    static const unsigned int LBP_BIN_COUNT;
 
     std::vector<LBPPixel*> backgroundPixels;
     cv::Mat* pixels;
 
     // Lookup array: [pattern] = class/bin
-    static std::vector<unsigned int> uniformPatterns;
+    static std::vector<unsigned int> *uniformPatterns;
 
+    std::vector<unsigned int>* genUniformPatternClasses(const unsigned int);
     cv::Mat* combineFrames(cv::Mat&, cv::Mat&);
     cv::Mat* getDescriptorMat();
     cv::Mat* createMovementMatrix();
 
-    void initLBPPixels(int, int, int);
+    void initLBPPixels(const int, const int, const int);
     void setHistogramNeighbours(LBPPixel*);
     static std::mutex mtx;
 };

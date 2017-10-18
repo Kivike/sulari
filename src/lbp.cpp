@@ -21,35 +21,29 @@
 
 #include "lbp.h"
 #include "lbppixel.h"
+#include "config.h"
 
 using namespace std;
 using namespace cv;
 
 mutex LBP::mtx;
+vector<unsigned int>* LBP::uniformPatterns = nullptr;
 
-/*
- * ALGORITHM SETTINGS
- */
-// How close to each other can pixel gray-scale values be
-// while still considering them the same
-const int LBP::PIXEL_VALUE_TOLERANCE = 8;
-// Currently the region is a X*X square
-const int LBP::HISTOGRAM_REGION_SIZE = 12;
-// If set to true, only every other half of rows are handled on each frame
-const unsigned int LBP::NEIGHBOUR_COUNT = 6;
-const unsigned int LBP::DESCRIPTOR_RADIUS = 3;
+const unsigned int LBP::BIN_COUNT = Config::LBP_NEIGHBOUR_COUNT + 1;
 
-const unsigned int LBP::BIN_COUNT = LBP::NEIGHBOUR_COUNT + 1;
-
-LBP::LBP(): pixels(nullptr) {}
+LBP::LBP(): pixels(nullptr) {
+    if (LBP::uniformPatterns == nullptr) {
+        LBP::uniformPatterns = this->genUniformPatternClasses(Config::LBP_NEIGHBOUR_COUNT);
+    }
+}
 
 /**
  * local binary pattern
  * @param neighbours How many neighbours are used for calculating the pattern
  */
-vector<unsigned int> genUniformPatternClasses(unsigned int neighbours) {
+vector<unsigned int>* LBP::genUniformPatternClasses(const unsigned int neighbours) {
     int totalPatterns = pow(2, neighbours);
-    vector<unsigned int>uniformPatterns = vector<unsigned int>(totalPatterns);
+    vector<unsigned int>* uniformPatterns = new vector<unsigned int>(totalPatterns);
     //cout << "Using " << neighbours << " neighbours -> " << totalPatterns << " patterns" << endl;
 
     for(unsigned int startPos = 0; startPos < neighbours; startPos++) {
@@ -67,16 +61,14 @@ vector<unsigned int> genUniformPatternClasses(unsigned int neighbours) {
                 }
                 pattern |= 1 << curPos;
             }
-            uniformPatterns.at(pattern) = bit_count;
+            uniformPatterns->at(pattern) = bit_count;
         }
     }
 
-    uniformPatterns.at(totalPatterns - 1) = neighbours;
-    uniformPatterns.at(0) = neighbours;
+    uniformPatterns->at(totalPatterns - 1) = neighbours;
+    uniformPatterns->at(0) = neighbours;
     return uniformPatterns;
 }
-
-vector<unsigned int> LBP::uniformPatterns = genUniformPatternClasses(LBP::NEIGHBOUR_COUNT);
 
 /**
  * Create pixels and connect histogram neighbours
@@ -84,7 +76,7 @@ vector<unsigned int> LBP::uniformPatterns = genUniformPatternClasses(LBP::NEIGHB
  * @param cols      [description]
  * @param histCount [description]
  */
-void LBP::initLBPPixels(int rows, int cols, int histCount) {
+void LBP::initLBPPixels(const int rows, const int cols, const int histCount) {
     pixels = new Mat(rows, cols, DataType<LBPPixel*>::type);
 
     for(int i = 0; i < rows; i++) {
@@ -103,10 +95,10 @@ void LBP::initLBPPixels(int rows, int cols, int histCount) {
 // Set pixels that will be used for calculating histogram
 // pixel: pixel of which to set neighbours for
 void LBP::setHistogramNeighbours(LBPPixel* pixel) {
-    int startRow = max(1, pixel->getRow() - LBP::HISTOGRAM_REGION_SIZE/2);
-    int endRow = min(pixels->rows - 1, pixel->getRow() + LBP::HISTOGRAM_REGION_SIZE/2);
-    int startCol = max(1, pixel->getCol() - LBP::HISTOGRAM_REGION_SIZE/2);
-    int endCol = min(pixels->cols - 1, pixel->getCol() + LBP::HISTOGRAM_REGION_SIZE/2);
+    int startRow = max(1, pixel->getRow() - Config::LBP_HISTOGRAM_REGION_SIZE/2);
+    int endRow = min(pixels->rows - 1, pixel->getRow() + Config::LBP_HISTOGRAM_REGION_SIZE/2);
+    int startCol = max(1, pixel->getCol() - Config::LBP_HISTOGRAM_REGION_SIZE/2);
+    int endCol = min(pixels->cols - 1, pixel->getCol() + Config::LBP_HISTOGRAM_REGION_SIZE/2);
 
     vector<LBPPixel*> neighbours;
 
@@ -182,7 +174,7 @@ void LBP::calculateFeatureDescriptors(Mat &src) {
     for(int i = 1; i < src.rows - 1; i++) {
         for(int j = 1; j < src.cols - 1; j++) {
             threshold = src.at<unsigned char>(i, j);
-            threshold += LBP::PIXEL_VALUE_TOLERANCE;
+            threshold += Config::LBP_PIXEL_VALUE_TOLERANCE;
 
             binaryCode = 0;
             binaryCode |= (src.at<unsigned char>(i - 1, j - 1) >= threshold) << 7;
@@ -205,11 +197,15 @@ void LBP::calculateFeatureDescriptors(Mat &src) {
  * This allows for example neighbour count of 6 which is easier to calculate than the original with 8
  */
 void LBP::calculateFeatureDescriptors(Mat *pixels, Mat &src) {
-    Mat dst = Mat::zeros(src.rows - 2*DESCRIPTOR_RADIUS, src.cols - 2*DESCRIPTOR_RADIUS, CV_8UC1);
+    Mat dst = Mat::zeros(src.rows - 2*Config::LBP_DESCRIPTOR_RADIUS, src.cols - 2*Config::LBP_DESCRIPTOR_RADIUS, CV_8UC1);
 
-    for(unsigned int n = 0; n < NEIGHBOUR_COUNT; n++) {
-        float x = static_cast<float>(DESCRIPTOR_RADIUS) * cos(2.0*M_PI*n/static_cast<float>(NEIGHBOUR_COUNT));
-        float y = static_cast<float>(DESCRIPTOR_RADIUS) * -sin(2.0*M_PI*n/static_cast<float>(NEIGHBOUR_COUNT));
+    float radiusFloat = static_cast<float>(Config::LBP_DESCRIPTOR_RADIUS);
+    float neighcourCountFloat = static_cast<float>(Config::LBP_NEIGHBOUR_COUNT);
+    unsigned int offset = Config::LBP_NEIGHBOUR_COUNT;
+
+    for(unsigned int n = 0; n < Config::LBP_NEIGHBOUR_COUNT; n++) {
+        float x = radiusFloat * cos(2.0 * M_PI * n / neighcourCountFloat);
+        float y = radiusFloat - sin(2.0 * M_PI * n / neighcourCountFloat);
 
         int fx = static_cast<int>(floor(x));
         int fy = static_cast<int>(floor(y));
@@ -224,23 +220,23 @@ void LBP::calculateFeatureDescriptors(Mat *pixels, Mat &src) {
         float w3 = (1 - tx) * ty;
         float w4 = tx * ty;
 
-        for(unsigned int i = DESCRIPTOR_RADIUS; i < src.rows - DESCRIPTOR_RADIUS; i++) {
-            for(unsigned int j = DESCRIPTOR_RADIUS; j < src.cols - DESCRIPTOR_RADIUS; j++) {
+        for(unsigned int i = offset; i < src.rows - offset; i++) {
+            for(unsigned int j = offset; j < src.cols - offset; j++) {
                 float t = w1*src.at<unsigned char>(i + fy, j + fx)
                     + w2*src.at<unsigned char>(i + fy, j + cx)
                     + w3*src.at<unsigned char>(i + cy, j + fx)
                     + w4*src.at<unsigned char>(i + cy, j + cx);
 
-                dst.at<unsigned char>(i - DESCRIPTOR_RADIUS, j - DESCRIPTOR_RADIUS)
+                dst.at<unsigned char>(i - offset, j - offset)
                     += ((t > src.at<unsigned char>(i, j))
-                        && ((abs(t - src.at<unsigned char>(i, j)) > PIXEL_VALUE_TOLERANCE))) << n;
+                        && ((abs(t - src.at<unsigned char>(i, j)) > Config::LBP_PIXEL_VALUE_TOLERANCE))) << n;
             }
         }
     }
 
-    for(unsigned i = DESCRIPTOR_RADIUS; i < dst.rows - DESCRIPTOR_RADIUS; i++) {
-        for(unsigned int j = DESCRIPTOR_RADIUS; j < dst.cols - DESCRIPTOR_RADIUS; j++) {
-            unsigned char desc = dst.at<unsigned char>(i - DESCRIPTOR_RADIUS, j - DESCRIPTOR_RADIUS);
+    for(unsigned i = offset; i < dst.rows - offset; i++) {
+        for(unsigned int j = offset; j < dst.cols - offset; j++) {
+            unsigned char desc = dst.at<unsigned char>(i - offset, j - offset);
             pixels->at<LBPPixel*>(i, j)->setDescriptor(desc);
         }
     }
@@ -258,7 +254,7 @@ vector<unsigned int> LBP::calculateHistogram(LBPPixel *pixel) {
 
     for(size_t i = 0; i < n_size; i++) {
         desc = neighbours.at(i)->getDescriptor();
-        uniformClass = LBP::uniformPatterns.at(desc);
+        uniformClass = this->uniformPatterns->at(desc);
 
         histogram.at(uniformClass)++;
     }
@@ -282,7 +278,6 @@ float LBP::getHistogramProximity(const vector<unsigned int> &hist1, const vector
 
         totalCommon += minAmount;
     }
-
     return (float)totalCommon / (float)(totalMax);
 }
 

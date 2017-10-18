@@ -8,12 +8,12 @@
 class LBPPixel
 {
     public:
-        LBPPixel(int, int, int, int);
-        unsigned char getColor(bool);
+        LBPPixel(const int, const int, const int, const int);
+        unsigned char getColor(const bool);
         unsigned char getDescriptor() const;
         bool isBackground(const std::vector<unsigned int>&);
-        void setLowestWeightHistogram(std::vector<unsigned int>);
-        void setDescriptor(unsigned char);
+        void setLowestWeightHistogram(const std::vector<unsigned int>&);
+        void setDescriptor(const unsigned char);
         void sortHistograms();
         void updateAdaptiveHistograms(const std::vector<unsigned int>&);
 
@@ -52,7 +52,7 @@ class LBPPixel
 
         static bool compareWeight(AdaptiveHistogram*, AdaptiveHistogram*);
         void updateBackgroundHistograms();
-        void updateHistogramWeights(const std::vector<unsigned int>&, int, float);
+        void updateHistogramWeights(const std::vector<unsigned int>&, const int, const float);
         void getBestProximityMatch(const std::vector<unsigned int>&, int&, float&);
 
 };

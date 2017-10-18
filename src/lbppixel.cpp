@@ -15,16 +15,12 @@
 
 #include "lbp.h"
 #include "lbppixel.h"
+#include "config.h"
 
 /*
  * ALGORITHM SETTINGS
  */
-// 0.0f - 1.0f
-const float LBPPixel::BACKGROUND_WEIGHT = 0.5f;
 
-// How close must histograms be to each other for them to be considered
-// similar
-const float LBPPixel::HISTOGRAM_PROXIMITY_THRESHOLD = 0.92f; // 0.9f
 
 const unsigned char LBPPixel::FOREGROUND_COLOR = 240;
 const unsigned char LBPPixel::BACKGROUND_COLOR = 0;
@@ -32,7 +28,7 @@ const unsigned char LBPPixel::BACKGROUND_COLOR = 0;
 using namespace std;
 using namespace cv;
 
-LBPPixel::LBPPixel(int histogramCount, int binCount, int row, int col)
+LBPPixel::LBPPixel(const int histogramCount, const int binCount, const int row, const int col)
     : row(row), col(col), descriptor(0) {
     for(int i = 0; i < histogramCount; i++) {
         histograms.push_back(new AdaptiveHistogram(binCount));
@@ -47,7 +43,7 @@ int LBPPixel::getCol() const {
     return col;
 }
 
-void LBPPixel::setDescriptor(unsigned char descriptor) {
+void LBPPixel::setDescriptor(const unsigned char descriptor) {
     this->descriptor = descriptor;
 }
 
@@ -99,14 +95,14 @@ void LBPPixel::updateHistogramWeights(const vector<unsigned int> &newHist,
  * @param bestHistIndex Index of best match
  * @param bestProximity How close the best match is (0.0 - 1.0)
  */
-void LBPPixel::getBestProximityMatch(const vector<unsigned int> &histogram, int &bestHistIndex, float &bestProximity) {
+void LBPPixel::getBestProximityMatch(const vector<unsigned int> &histogram, int& bestHistIndex, float& bestProximity) {
     bestHistIndex = -1;
     bestProximity = -1.0f;
 
     for(size_t i = 0; i < histograms.size(); i++) {
         float proximity = LBP::getHistogramProximity(histograms.at(i)->getBins(), histogram);
 
-        if(proximity > HISTOGRAM_PROXIMITY_THRESHOLD && proximity > bestProximity) {
+        if(proximity > Config::HISTOGRAM_PROXIMITY_THRESHOLD && proximity > bestProximity) {
             bestHistIndex = i;
             bestProximity = proximity;
         }
@@ -141,7 +137,7 @@ void LBPPixel::sortHistograms() {
  * Set new bins for the histogram with lowest weight
  * @param hist [description]
  */
-void LBPPixel::setLowestWeightHistogram(vector<unsigned int> hist) {
+void LBPPixel::setLowestWeightHistogram(const vector<unsigned int>& hist) {
     histograms.back()->setBins(hist);
 }
 
@@ -156,7 +152,7 @@ void LBPPixel::updateBackgroundHistograms() {
     for(size_t i = 0; i < histograms.size(); i++) {
         float weight = histograms.at(i)->getWeight();
 
-        if(weight > BACKGROUND_WEIGHT) {
+        if(weight > Config::PIXEL_BACKGROUND_WEIGHT) {
             backgroundHistograms.push_back(histograms.at(i));
         } else {
             break;
@@ -166,14 +162,14 @@ void LBPPixel::updateBackgroundHistograms() {
 
 /**
  * Check if histogram matches any background histogram
- * @param  newHist [description]
+ * @param  newHist Histogram of most recent frame
  * @return         [description]
  */
 bool LBPPixel::isBackground(const vector<unsigned int> &newHist) {
     for(size_t i = 0; i < backgroundHistograms.size(); i++) {
         float proximity = LBP::getHistogramProximity(backgroundHistograms.at(i)->getBins(), newHist);
 
-        if(proximity > HISTOGRAM_PROXIMITY_THRESHOLD) {
+        if(proximity > Config::HISTOGRAM_PROXIMITY_THRESHOLD) {
             setColor(BACKGROUND_COLOR);
             return true;
         }
@@ -183,7 +179,7 @@ bool LBPPixel::isBackground(const vector<unsigned int> &newHist) {
     return false;
 }
 
-unsigned char LBPPixel::getColor(bool weightGrayValue) {
+unsigned char LBPPixel::getColor(const bool weightGrayValue) {
     if(weightGrayValue) {
         return (1 - histograms.at(0)->getWeight()) * 255;
     } else {
@@ -191,7 +187,7 @@ unsigned char LBPPixel::getColor(bool weightGrayValue) {
     }
 }
 
-void LBPPixel::setColor(unsigned char color) {
+void LBPPixel::setColor(const unsigned char color) {
     this->color = color;
 }
 

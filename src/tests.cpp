@@ -78,8 +78,8 @@ vector<TestSet*> Tests::getTestSets() {
         TestFile{ "videos/ut-interaction/seq10.avi",  2 }
     };
 
-    //sets.push_back(kth);
-    sets.push_back(ut_interaction);
+    sets.push_back(kth);
+    //sets.push_back(ut_interaction);
     return sets;
 }
 

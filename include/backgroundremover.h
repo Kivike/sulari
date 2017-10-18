@@ -23,7 +23,7 @@ public:
     BackgroundRemover();
     BoundingBox *fgBoundingBox;
 
-    void initLBPPixels(int, int, int);
+    void initLBPPixels(const int, const int, const int);
     void setHistogramNeighbours(LBPPixel*);
 
     cv::Mat* combineFrames(cv::Mat&, cv::Mat&);
@@ -32,7 +32,7 @@ public:
 
     cv::Rect* getForegroundBoundingBox(unsigned int, unsigned int);
 
-    static void handleFrameRows(BackgroundRemover*, unsigned int, unsigned int, cv::Mat*);
+    static void handleFrameRows(BackgroundRemover*, cv::Mat*, const unsigned int, const unsigned int, const unsigned int);
     void onNewFrame(cv::Mat& frame);
     ~BackgroundRemover() {
         delete lbp;
@@ -40,9 +40,6 @@ public:
     }
 protected:
 private:
-    static const bool COMBINE_FRAMES;
-    static const bool INTERLACE;
-    static const unsigned int BOUNDING_BOX_PADDING;
     bool useThreading;
     cv::Mat *pixels;
     int frameCount;
