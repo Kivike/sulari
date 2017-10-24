@@ -26,14 +26,14 @@ public:
     void initLBPPixels(const int, const int, const int);
     void setHistogramNeighbours(LBPPixel*);
 
-    cv::Mat* combineFrames(cv::Mat&, cv::Mat&);
-    cv::Mat* cropBackground(cv::Mat&, cv::Rect*);
-    cv::Mat* createMovementMatrix();
+    cv::Mat combineFrames(cv::Mat&, cv::Mat&);
+    cv::Mat cropBackground(cv::Mat&, cv::Rect*);
+    cv::Mat createMovementMatrix();
 
     cv::Rect* getForegroundBoundingBox(unsigned int, unsigned int);
 
     static void handleFrameRows(BackgroundRemover*, cv::Mat*, const unsigned int, const unsigned int, const unsigned int);
-    void onNewFrame(cv::Mat& frame);
+    void onNewFrame(const cv::Mat& frame);
     ~BackgroundRemover() {
         delete lbp;
         delete fgBoundingBox;

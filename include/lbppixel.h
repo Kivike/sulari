@@ -9,22 +9,22 @@ class LBPPixel
 {
     public:
         LBPPixel(const int, const int, const int, const int);
-        unsigned char getColor(const bool);
-        unsigned char getDescriptor() const;
+
         bool isBackground(const std::vector<unsigned int>&);
         void setLowestWeightHistogram(const std::vector<unsigned int>&);
         void setDescriptor(const unsigned char);
         void sortHistograms();
-        void updateAdaptiveHistograms(const std::vector<unsigned int>&);
+        void updateAdaptiveHistograms(std::vector<unsigned int>&);
 
         void printHistogramWeights();
         void printPosition();
 
         void setHistogramNeighbours(const std::vector<LBPPixel*>&);
         std::vector<LBPPixel*> getHistogramNeighbours() const;
-
         int getRow() const;
         int getCol() const;
+        unsigned char getColor(const bool);
+        unsigned char getDescriptor() const;
 
         ~LBPPixel() {
             for(auto p : histograms) delete p;

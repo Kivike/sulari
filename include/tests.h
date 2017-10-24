@@ -1,7 +1,7 @@
 #ifndef TESTS_H
 #define TESTS_H
 
-#include "cascadeclassifiertester.h"
+#include "classifiertester.h"
 
 class Tests {
 public:

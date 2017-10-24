@@ -113,16 +113,16 @@ void LBP::setHistogramNeighbours(LBPPixel* pixel) {
 }
 
 // Combines image and movement matrix
-Mat* LBP::combineFrames(Mat& img, Mat& mMatrix) {
+Mat LBP::combineFrames(const Mat& img, const Mat& mMatrix) {
     if(img.rows != mMatrix.rows || img.cols != mMatrix.cols) {
-        return &img;
+        return img;
     }
 
-    Mat *output = new Mat(img.rows, img.cols, CV_8UC1);
+    Mat output = Mat(img.rows, img.cols, CV_8UC1);
 
     for(int i = 0; i < img.rows; i++) {
         for(int j = 0; j < img.cols; j++) {
-            output->at<unsigned char>(i, j) = min(img.at<unsigned char>(i, j),
+            output.at<unsigned char>(i, j) = min(img.at<unsigned char>(i, j),
                                                   mMatrix.at<unsigned char>(i, j));
         }
     }
@@ -130,34 +130,18 @@ Mat* LBP::combineFrames(Mat& img, Mat& mMatrix) {
 }
 
 /**
- * Get Mat (representing the frame) of LBP descriptors
- * @return Matrix of unsigned integers
- */
-Mat* LBP::getDescriptorMat() {
-    Mat* descMat = new Mat(pixels->rows, pixels->cols, CV_8UC1);
-
-    for(int i = 0; i < descMat->rows; i++) {
-        for(int j = 0; j < descMat->cols; j++) {
-            descMat->at<unsigned char>(i, j) = pixels->at<LBPPixel*>(i, j)->getDescriptor();
-        }
-    }
-
-    return descMat;
-}
-
-/**
  * Create 2-color frame of foreground and background pixels
  * @return Frame with black and white pixels
  */
-Mat* LBP::createMovementMatrix() {
-    Mat* result = new Mat(pixels->rows, pixels->cols, CV_8UC1);
+Mat LBP::createMovementMatrix() {
+    Mat result = Mat(pixels->rows, pixels->cols, CV_8UC1);
 
-    for(int i = 0; i < result->rows; i++) {
-        for(int j = 0; j < result->cols; j++) {
+    for(int i = 0; i < result.rows; i++) {
+        for(int j = 0; j < result.cols; j++) {
             LBPPixel *pixel = pixels->at<LBPPixel*>(i, j);
 
             int col = pixel->getColor(false);
-            result->at<unsigned char>(i, j) = col;
+            result.at<unsigned char>(i, j) = col;
         }
     }
 
@@ -167,7 +151,7 @@ Mat* LBP::createMovementMatrix() {
 /*
  * The original LBP descriptor with 8 nearest neighbour pixels
  */
-void LBP::calculateFeatureDescriptors(Mat &src) {
+void LBP::calculateFeatureDescriptors(const Mat &src) {
     unsigned int threshold;
     unsigned char binaryCode;
 
@@ -196,7 +180,7 @@ void LBP::calculateFeatureDescriptors(Mat &src) {
  * Uses wanted radius and neighbours in circular pattern using interpolation
  * This allows for example neighbour count of 6 which is easier to calculate than the original with 8
  */
-void LBP::calculateFeatureDescriptors(Mat *pixels, Mat &src) {
+void LBP::calculateFeatureDescriptors(Mat *pixels, const Mat &src) {
     Mat dst = Mat::zeros(src.rows - 2*Config::LBP_DESCRIPTOR_RADIUS, src.cols - 2*Config::LBP_DESCRIPTOR_RADIUS, CV_8UC1);
 
     float radiusFloat = static_cast<float>(Config::LBP_DESCRIPTOR_RADIUS);

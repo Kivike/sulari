@@ -31,7 +31,6 @@ BackgroundRemover::BackgroundRemover(): pixels(nullptr) {
     lbp = new LBP();
 }
 
-//
 /**
  * Create pixels and connect histogram neighbours
  * @param rows      Rows in frame
@@ -83,16 +82,16 @@ void BackgroundRemover::setHistogramNeighbours(LBPPixel* pixel) {
  * @param  fgBBox Foreground bounding box
  * @return        Return original image with black background
  */
-Mat* BackgroundRemover::cropBackground(Mat &img, Rect* fgBBox) {
-    Mat *output = new Mat(img.rows, img.cols, CV_8UC1);
+Mat BackgroundRemover::cropBackground(Mat &img, Rect* fgBBox) {
+    Mat output = Mat(img.rows, img.cols, CV_8UC1);
 
     for(int i = 0; i < img.rows; i++) {
         for(int j = 0; j < img.cols; j++) {
             if (i < fgBBox->tl().y || j < fgBBox->tl().x ||
                 i > fgBBox->br().y || j > fgBBox->br().x ) {
-                output->at<unsigned char>(i, j) = 0;
+                output.at<unsigned char>(i, j) = 0;
             } else {
-                output->at<unsigned char>(i, j) = img.at<unsigned char>(i, j);
+                output.at<unsigned char>(i, j) = img.at<unsigned char>(i, j);
             }
         }
     }
@@ -100,15 +99,15 @@ Mat* BackgroundRemover::cropBackground(Mat &img, Rect* fgBBox) {
 }
 
 // Create 2-color frame of foreground and background pixels
-Mat* BackgroundRemover::createMovementMatrix() {
-    Mat* result = new Mat(pixels->rows, pixels->cols, CV_8UC1);
+Mat BackgroundRemover::createMovementMatrix() {
+    Mat result = Mat(pixels->rows, pixels->cols, CV_8UC1);
 
-    for(int i = 0; i < result->rows; i++) {
-        for(int j = 0; j < result->cols; j++) {
+    for(int i = 0; i < result.rows; i++) {
+        for(int j = 0; j < result.cols; j++) {
             LBPPixel *pixel = pixels->at<LBPPixel*>(i, j);
 
             int col = pixel->getColor(false);
-            result->at<unsigned char>(i, j) = col;
+            result.at<unsigned char>(i, j) = col;
         }
     }
 
@@ -140,7 +139,7 @@ Rect* BackgroundRemover::getForegroundBoundingBox(unsigned int max_x, unsigned i
     return new Rect(x, y, width, height);
 }
 
-void BackgroundRemover::onNewFrame(Mat& frame) {
+void BackgroundRemover::onNewFrame(const Mat& frame) {
     if(pixels == nullptr) {
         initLBPPixels(frame.rows, frame.cols, 3);
     }

@@ -1,5 +1,5 @@
 #include "tests.h"
-#include "cascadeclassifiertester.h"
+#include "classifiertester.h"
 #include <vector>
 #include <iostream>
 

@@ -17,11 +17,6 @@
 #include "lbppixel.h"
 #include "config.h"
 
-/*
- * ALGORITHM SETTINGS
- */
-
-
 const unsigned char LBPPixel::FOREGROUND_COLOR = 240;
 const unsigned char LBPPixel::BACKGROUND_COLOR = 0;
 
@@ -112,7 +107,7 @@ void LBPPixel::getBestProximityMatch(const vector<unsigned int> &histogram, int&
 /**
  * Update histograms based on the new histogram
  */
-void LBPPixel::updateAdaptiveHistograms(const vector<unsigned int> &histogram) {
+void LBPPixel::updateAdaptiveHistograms(vector<unsigned int> &histogram) {
     int bestHistIndex;
     float bestProximity;
 

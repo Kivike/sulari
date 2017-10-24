@@ -20,8 +20,8 @@ public:
     static void printHistogram(const std::vector<unsigned int>&);
     void handleNewFrame(cv::Mat&);
     std::vector<unsigned int> calculateHistogram(LBPPixel*);
-    void calculateFeatureDescriptors(cv::Mat&);
-    void calculateFeatureDescriptors(cv::Mat*, cv::Mat&);
+    void calculateFeatureDescriptors(const cv::Mat&);
+    void calculateFeatureDescriptors(cv::Mat*, const cv::Mat&);
 
     LBP();
     ~LBP() {
@@ -40,9 +40,8 @@ private:
     static std::vector<unsigned int> *uniformPatterns;
 
     std::vector<unsigned int>* genUniformPatternClasses(const unsigned int);
-    cv::Mat* combineFrames(cv::Mat&, cv::Mat&);
-    cv::Mat* getDescriptorMat();
-    cv::Mat* createMovementMatrix();
+    cv::Mat combineFrames(const cv::Mat&, const cv::Mat&);
+    cv::Mat createMovementMatrix();
 
     void initLBPPixels(const int, const int, const int);
     void setHistogramNeighbours(LBPPixel*);

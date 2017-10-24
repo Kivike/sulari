@@ -2,7 +2,7 @@
 * Class for testing cascade classifiers to detect humans from video sequences
 */
 
-#include "cascadeclassifiertester.h"
+#include "classifiertester.h"
 #include "lbp.h"
 #include "backgroundremover.h"
 #include "imgutils.h"
@@ -26,7 +26,7 @@ const bool CascadeClassifierTester::PRINT_FRAMERATE = true;
 
 CascadeClassifierTester::CascadeClassifierTester() {}
 
-void CascadeClassifierTester::setCascade(const string& file, int width, int height) {
+void CascadeClassifierTester::setCascade(const string& file, const int width, const int height) {
     classifier.load(file);
 
     this->windowWidth = width;
@@ -49,20 +49,16 @@ TestResult* CascadeClassifierTester::testVideoFile(struct TestFile file) {
         return 0;
     }
 
-    printf("[BGR:%d] %s", bgRemovalEnabled, file.path.c_str());
-    fflush(stdout);
-
     long frameCount = 0;
     int positives = 0;
     int falsePositives = 0;
     int misses = 0;
     Mat frame, resizedFrame, ppFrame;
     double totalTime = 0.0;
+    backgroundRemover = nullptr;
 
     if(bgRemovalEnabled) {
         backgroundRemover = new BackgroundRemover();
-    } else {
-        backgroundRemover = nullptr;
     }
 
     try {
@@ -77,8 +73,6 @@ TestResult* CascadeClassifierTester::testVideoFile(struct TestFile file) {
             if(!frame.data) {
                 break;
             }
-
-            //cout << frameCount << " " << flush;
 
             frameCount++;
             preprocessFrame(frame, ppFrame);
@@ -163,11 +157,11 @@ void CascadeClassifierTester::showOutputFrame(vector<Rect> &found, Mat& frame) {
 
         if (fgBBox != nullptr && fgBBox->tl().x >= 0 && fgBBox->tl().y >= 0 &&
             fgBBox->br().x <= frame.cols && fgBBox->br().y <= frame.rows) {
-                frame = *backgroundRemover->cropBackground(frame, fgBBox);
+                frame = backgroundRemover->cropBackground(frame, fgBBox);
             }
 
-        //Mat* movementMatrix = backgroundRemover->createMovementMatrix();
-        //frame = *ImgUtils::frameMin(frame, *movementMatrix);
+        //Mat movementMatrix = backgroundRemover->createMovementMatrix();
+        //frame = *ImgUtils::frameMin(frame, movementMatrix);
     }
 
     cvtColor(frame, bgrFrame, CV_GRAY2BGR);
@@ -202,7 +196,7 @@ void CascadeClassifierTester::preprocessFrame(Mat &frame, Mat &output) {
     cvtColor(clampedFrame, output, CV_BGR2GRAY);
 }
 
-vector<Rect> CascadeClassifierTester::handleFrame(Mat &frame, int &positives, int &misses, int &falsePositives) {
+vector<Rect> CascadeClassifierTester::handleFrame(const Mat &frame, int &positives, int &misses, int &falsePositives) {
     vector<Rect> found = vector<Rect>();
 
     Mat detectionFrame = frame;
