@@ -114,30 +114,41 @@ Mat BackgroundRemover::createMovementMatrix() {
     return result;
 }
 
-Rect* BackgroundRemover::getForegroundBoundingBox(unsigned int max_x, unsigned int max_y) {
-    // Apply padding and check that box won't go beyond frame
+Rect* BackgroundRemover::getForegroundBoundingBox(
+    int max_x, int max_y, int min_w, int min_h
+) {
+    int width = fgBoundingBox->endx - fgBoundingBox->startx;
+    int height = fgBoundingBox->endy - fgBoundingBox->starty;
 
-    int x = max((int)fgBoundingBox->startx - (int)Config::BGR_BOUNDING_BOX_PADDING, 0);
-    int y = max((int)fgBoundingBox->starty - (int)Config::BGR_BOUNDING_BOX_PADDING, 0);
-    int width = fgBoundingBox->endx - x + Config::BGR_BOUNDING_BOX_PADDING;
-    int height = fgBoundingBox->endy - y + Config::BGR_BOUNDING_BOX_PADDING;
+    int missingWidth = min_w - width;
+    int missingHeight = min_h - height;
 
-    if(x < 0 || y < 0) {
+    int bbx = fgBoundingBox->startx;
+    int bbw = fgBoundingBox->endx - fgBoundingBox->startx;
+    int bby = fgBoundingBox->starty;
+    int bbh = fgBoundingBox->endy - fgBoundingBox->starty;
+
+    if (missingWidth > 1) {
+        bbx -= missingWidth / 2;
+        bbw += missingWidth;
+    }
+    if (missingHeight > 1) {
+        bby -= missingHeight / 2;
+        bbh += missingHeight;
+    }
+
+    bbx = std::max(bbx - Config::BGR_BOUNDING_BOX_PADDING, 0);
+    bby = std::max(bby - Config::BGR_BOUNDING_BOX_PADDING, 0);
+    bbw = std::min(bbw + 2 * Config::BGR_BOUNDING_BOX_PADDING, max_x - bbx);
+    bbh = std::min(bbh + 2 * Config::BGR_BOUNDING_BOX_PADDING, max_y - bby);
+
+    if(bbx < 0 || bby < 0 || bbw <= 0 || bbh <= 0) {
         return nullptr;
     }
-    if((unsigned int)(x + width) > max_x) {
-        width -= (x + width - max_x);
-    }
-    if((unsigned int)(y + height) > max_y) {
-        height -= (y + height - max_y);
-    }
 
-    if(width <= 0 || height <= 0) {
-        return nullptr;
-    }
-
-    return new Rect(x, y, width, height);
+    return new Rect(bbx, bby, bbw, bbh);
 }
+
 
 void BackgroundRemover::onNewFrame(const Mat& frame) {
     if(pixels == nullptr) {

@@ -30,7 +30,7 @@ public:
     cv::Mat cropBackground(cv::Mat&, cv::Rect*);
     cv::Mat createMovementMatrix();
 
-    cv::Rect* getForegroundBoundingBox(unsigned int, unsigned int);
+    cv::Rect* getForegroundBoundingBox(int, int, int, int);
 
     static void handleFrameRows(BackgroundRemover*, cv::Mat*, const unsigned int, const unsigned int, const unsigned int);
     void onNewFrame(const cv::Mat& frame);

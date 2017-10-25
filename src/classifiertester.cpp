@@ -153,7 +153,8 @@ void CascadeClassifierTester::showOutputFrame(vector<Rect> &found, Mat& frame) {
     Rect *fgBBox = nullptr;
 
     if(backgroundRemover) {
-        fgBBox = backgroundRemover->getForegroundBoundingBox(frame.cols, frame.rows);
+        fgBBox = backgroundRemover->getForegroundBoundingBox(
+            frame.cols, frame.rows, this->windowWidth, this->windowHeight);
 
         if (fgBBox != nullptr && fgBBox->tl().x >= 0 && fgBBox->tl().y >= 0 &&
             fgBBox->br().x <= frame.cols && fgBBox->br().y <= frame.rows) {
@@ -203,7 +204,8 @@ vector<Rect> CascadeClassifierTester::handleFrame(const Mat &frame, int &positiv
 
     if(backgroundRemover) {
         backgroundRemover->onNewFrame(frame);
-        Rect *fgBBox = backgroundRemover->getForegroundBoundingBox(frame.cols, frame.rows);
+        Rect *fgBBox = backgroundRemover->getForegroundBoundingBox(
+            frame.cols, frame.rows, this->windowWidth, this->windowHeight);
 
         // Only detect in area marked as foreground by background remover
         try {
