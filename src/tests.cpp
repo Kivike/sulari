@@ -25,12 +25,16 @@ Tests* Tests::run() {
 void Tests::runSetAll(TestSet *set) {
     tester = new CascadeClassifierTester();
 
+    testCascade(set, "cascade/haar_01.xml", 20, 40);
     testCascade(set, "cascade/haar_02.xml", 20, 40);
-    testCascade(set, "cascade/lbp_02.xml", 20, 40);
-    testCascade(set, "cascade/lbp_05.xml", 20, 40);
+    testCascade(set, "cascade/haar_03.xml", 20, 40);
+    testCascade(set, "cascade/haar_04.xml", 20, 40);
+    testCascade(set, "cascade/haar_06.xml", 20, 40);
     testCascade(set, "cascade/lbp_01.xml", 20, 40);
+    testCascade(set, "cascade/lbp_02.xml", 20, 40);
     testCascade(set, "cascade/lbp_03.xml", 20, 40);
     testCascade(set, "cascade/lbp_04.xml", 20, 40);
+    testCascade(set, "cascade/lbp_05.xml", 20, 40);
     testCascade(set, "cascade/lbp_06.xml", 20, 40);
     testCascade(set, "cascade/lbp_07.xml", 20, 40);
     testCascade(set, "cascade/lbp_08.xml", 20, 40);
