@@ -61,11 +61,11 @@ void Tests::runSet(TestSet *set) {
 vector<TestSet*> Tests::getTestSets() {
     vector<TestSet*> sets = vector<TestSet*>();
 
-    TestSet* kth = new TestSet("KTH");
-    kth->files = vector<TestFile> {
-        TestFile{ "videos/kth/daria_walk.avi", 1 },
-        TestFile{ "videos/kth/ira_walk.avi", 1 },
-        TestFile{ "videos/kth/lena_walk2.avi", 1 }
+    TestSet* weizmann = new TestSet("KTH");
+    weizmann->files = vector<TestFile> {
+        TestFile{ "videos/weizmann/daria_walk.avi", 1 },
+        TestFile{ "videos/weizmann/ira_walk.avi", 1 },
+        TestFile{ "videos/weizmann/lena_walk2.avi", 1 }
     };
 
     TestSet* ut_interaction = new TestSet("ut_interaction");
@@ -82,7 +82,7 @@ vector<TestSet*> Tests::getTestSets() {
         TestFile{ "videos/ut-interaction/seq10.avi",  2 }
     };
 
-    sets.push_back(kth);
+    sets.push_back(weizmann);
     //sets.push_back(ut_interaction);
     return sets;
 }
