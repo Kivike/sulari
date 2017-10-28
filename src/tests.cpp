@@ -61,7 +61,7 @@ void Tests::runSet(TestSet *set) {
 vector<TestSet*> Tests::getTestSets() {
     vector<TestSet*> sets = vector<TestSet*>();
 
-    TestSet* weizmann = new TestSet("KTH");
+    TestSet* weizmann = new TestSet("Weizmann");
     weizmann->files = vector<TestFile> {
         TestFile{ "videos/weizmann/daria_walk.avi", 1 },
         TestFile{ "videos/weizmann/ira_walk.avi", 1 },
