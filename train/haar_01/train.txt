@@ -1,0 +1,1 @@
+opencv_traincascade -data haar_1 -vec pos_20x40.vec -bg neg.lst -numStages 12 -minHitRate 0.995 -maxFalseAlarmRate 0.5 -numPos 2100 -numNeg 1216 -w 20 -h 40 -featureType HAAR
