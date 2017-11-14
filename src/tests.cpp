@@ -1,6 +1,9 @@
 #include "tests.h"
 #include "classifiertester.h"
+<<<<<<< HEAD
 #include "keyframes.h"
+=======
+>>>>>>> master
 #include <vector>
 #include <iostream>
 #include <memory>
@@ -28,15 +31,22 @@ Tests* Tests::run() {
 void Tests::runSetAll(TestSet *set) {
     tester = new CascadeClassifierTester();
 
+    testCascade(set, "cascade/lbp_09.xml", 32, 64);
+    testCascade(set, "cascade/lbp_10.xml", 32, 64);
+    testCascade(set, "cascade/lbp_11.xml", 32, 64);
+    testCascade(set, "cascade/haar_01.xml", 20, 40);
     testCascade(set, "cascade/haar_02.xml", 20, 40);
-    testCascade(set, "cascade/lbp_02.xml", 20, 40);
-    testCascade(set, "cascade/lbp_05.xml", 20, 40);
+    testCascade(set, "cascade/haar_04.xml", 20, 40);
+    testCascade(set, "cascade/haar_06.xml", 20, 40);
     testCascade(set, "cascade/lbp_01.xml", 20, 40);
+    testCascade(set, "cascade/lbp_02.xml", 20, 40);
     testCascade(set, "cascade/lbp_03.xml", 20, 40);
     testCascade(set, "cascade/lbp_04.xml", 20, 40);
+    testCascade(set, "cascade/lbp_05.xml", 20, 40);
     testCascade(set, "cascade/lbp_06.xml", 20, 40);
     testCascade(set, "cascade/lbp_07.xml", 20, 40);
     testCascade(set, "cascade/lbp_08.xml", 20, 40);
+
 }
 
 void Tests::testCascade(TestSet *set, const string& file, int width, int height) {
@@ -65,14 +75,20 @@ vector<TestSet*> Tests::getTestSets() {
 
     TestSet* weizmann = new TestSet("Weizmann");
     weizmann->files = vector<TestFile> {
+<<<<<<< HEAD
         TestFile{ "videos/weizmann/daria_walk.avi", 1, 2, new int[2]{1, 50}},
         TestFile{ "videos/weizmann/ira_walk.avi",   1, 2, new int[2]{1, 50}},
         TestFile{ "videos/weizmann/lena_walk2.avi", 1, 2, new int[2]{1, 50}}
+=======
+        TestFile{ "videos/weizmann/daria_walk.avi", 1 },
+        TestFile{ "videos/weizmann/ira_walk.avi", 1 },
+        TestFile{ "videos/weizmann/lena_walk2.avi", 1 }
+>>>>>>> master
     };
 
 
-    //sets.push_back(kth);
-    sets.push_back(ut_interaction);
+    sets.push_back(weizmann);
+    //sets.push_back(ut_interaction);
     return sets;
 }
 

@@ -1,12 +1,16 @@
 #ifndef TESTS_H
 #define TESTS_H
 
+<<<<<<< HEAD
 <<<<<<< Updated upstream
 #include "cascadeclassifiertester.h"
 =======
 #include "classifiertester.h"
 #include <fstream>
 >>>>>>> Stashed changes
+=======
+#include "classifiertester.h"
+>>>>>>> master
 
 class Tests {
 public:

@@ -8,23 +8,23 @@
 class LBPPixel
 {
     public:
-        LBPPixel(int, int, int, int);
-        unsigned char getColor(bool);
-        unsigned char getDescriptor() const;
+        LBPPixel(const int, const int, const int, const int);
+
         bool isBackground(const std::vector<unsigned int>&);
-        void setLowestWeightHistogram(std::vector<unsigned int>);
-        void setDescriptor(unsigned char);
+        void setLowestWeightHistogram(const std::vector<unsigned int>&);
+        void setDescriptor(const unsigned char);
         void sortHistograms();
-        void updateAdaptiveHistograms(const std::vector<unsigned int>&);
+        void updateAdaptiveHistograms(std::vector<unsigned int>&);
 
         void printHistogramWeights();
         void printPosition();
 
         void setHistogramNeighbours(const std::vector<LBPPixel*>&);
         std::vector<LBPPixel*> getHistogramNeighbours() const;
-
         int getRow() const;
         int getCol() const;
+        unsigned char getColor(const bool);
+        unsigned char getDescriptor() const;
 
         ~LBPPixel() {
             for(auto p : histograms) delete p;
@@ -52,7 +52,7 @@ class LBPPixel
 
         static bool compareWeight(AdaptiveHistogram*, AdaptiveHistogram*);
         void updateBackgroundHistograms();
-        void updateHistogramWeights(const std::vector<unsigned int>&, int, float);
+        void updateHistogramWeights(const std::vector<unsigned int>&, const int, const float);
         void getBestProximityMatch(const std::vector<unsigned int>&, int&, float&);
 
 };

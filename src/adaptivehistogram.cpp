@@ -7,7 +7,7 @@ using namespace std;
 
 const float BIN_LEARN_RATE = 0.01f;
 const float WEIGHT_LEARN_RATE = 0.01f;
-const float INITIAL_WEIGHT = 0.01f;
+const float INITIAL_WEIGHT = 0.5f;
 
 AdaptiveHistogram::AdaptiveHistogram(int binCount) {
     bins.resize(binCount);

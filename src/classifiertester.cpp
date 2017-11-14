@@ -7,7 +7,6 @@
 #include "backgroundremover.h"
 #include "imgutils.h"
 #include "config.h"
-#include "keyframes.h"
 
 #include "opencv2/core/core.hpp"
 #include "opencv2/highgui/highgui.hpp"
@@ -25,10 +24,9 @@ using namespace std::chrono;
 
 const bool CascadeClassifierTester::PRINT_FRAMERATE = true;
 
-
 CascadeClassifierTester::CascadeClassifierTester() {}
 
-void CascadeClassifierTester::setCascade(const string& file, int width, int height) {
+void CascadeClassifierTester::setCascade(const string& file, const int width, const int height) {
     classifier.load(file);
 
     this->windowWidth = width;
@@ -47,12 +45,9 @@ TestResult* CascadeClassifierTester::testVideoFile(struct TestFile file) {
     VideoCapture cap = VideoCapture(file.path);
 
     if (!cap.isOpened()) {
-        cout << "Failed to open file " << file.path << endl;
-        return nullptr;
+        std::cout << "Failed to open file " << file.path << endl;
+        return 0;
     }
-
-    printf("[BGR:%d] %s", bgRemovalEnabled, file.path.c_str());
-    fflush(stdout);
 
     long frameCount = 0;
     int positives = 0;
@@ -60,11 +55,10 @@ TestResult* CascadeClassifierTester::testVideoFile(struct TestFile file) {
     int misses = 0;
     Mat frame, resizedFrame, ppFrame;
     double totalTime = 0.0;
+    backgroundRemover = nullptr;
 
     if(bgRemovalEnabled) {
         backgroundRemover = new BackgroundRemover();
-    } else {
-        backgroundRemover = nullptr;
     }
 
     try {
@@ -80,8 +74,6 @@ TestResult* CascadeClassifierTester::testVideoFile(struct TestFile file) {
                 break;
             }
 
-            //cout << frameCount << " " << flush;
-
             frameCount++;
             preprocessFrame(frame, ppFrame);
 
@@ -95,32 +87,25 @@ TestResult* CascadeClassifierTester::testVideoFile(struct TestFile file) {
 
             totalTime += t_frame;
 
-            size_t found_count = filterFound(found).size();
-
-            bool humanInFrame = file.keyFrames->isHumanInFrame(frameCount);
+            vector<Rect> foundFiltered = filterFound(found);
+            size_t found_count = foundFiltered.size();
 
             if(found_count > 0) {
-                if(humanInFrame) {
-                    if(found_count  >= file.peopleCount) {
-                        positives += file.peopleCount;
-                        falsePositives += found_count - file.peopleCount;
-                    } else {
-                        positives += found_count;
-                        misses += file.peopleCount - found_count;
-                    }
+                if(found_count  >= file.peopleCount) {
+                    positives += file.peopleCount;
+                    falsePositives += found_count - file.peopleCount;
                 } else {
-                    falsePositives += found_count;
+                    positives += found_count;
+                    misses += file.peopleCount - found_count;
                 }
             } else {
-                if(humanInFrame) {
-                    misses += file.peopleCount;
-                }
+                misses += file.peopleCount;
             }
-            showOutputFrame(found, ppFrame);
+            showOutputFrame(foundFiltered, ppFrame);
         }
     } catch (exception &e) {
-        cout << "ERROR" << endl;
-        cout << e.what() << endl;
+        std::cout << "ERROR" << endl;
+        std::cout << e.what() << endl;
         exit(5);
     }
 
@@ -130,7 +115,7 @@ TestResult* CascadeClassifierTester::testVideoFile(struct TestFile file) {
     TestResult *result = new TestResult();
     result->averageFps = frameCount / (totalTime / 1000000000);
     result->detectionRate = detectionRate;
-    result->testFile = &file;
+    result->testFile = file;
     result->falsePositiveRate = falsePositiveRate;
 
     return result;
@@ -168,15 +153,16 @@ void CascadeClassifierTester::showOutputFrame(vector<Rect> &found, Mat& frame) {
     Rect *fgBBox = nullptr;
 
     if(backgroundRemover) {
-        fgBBox = backgroundRemover->getForegroundBoundingBox(frame.cols, frame.rows);
+        fgBBox = backgroundRemover->getForegroundBoundingBox(
+            frame.cols, frame.rows, this->windowWidth, this->windowHeight);
 
         if (fgBBox != nullptr && fgBBox->tl().x >= 0 && fgBBox->tl().y >= 0 &&
             fgBBox->br().x <= frame.cols && fgBBox->br().y <= frame.rows) {
-                frame = *backgroundRemover->cropBackground(frame, fgBBox);
+                frame = backgroundRemover->cropBackground(frame, fgBBox);
             }
 
-        //Mat* movementMatrix = backgroundRemover->createMovementMatrix();
-        //frame = *ImgUtils::frameMin(frame, *movementMatrix);
+        //Mat movementMatrix = backgroundRemover->createMovementMatrix();
+        //frame = *ImgUtils::frameMin(frame, movementMatrix);
     }
 
     cvtColor(frame, bgrFrame, CV_GRAY2BGR);
@@ -211,14 +197,15 @@ void CascadeClassifierTester::preprocessFrame(Mat &frame, Mat &output) {
     cvtColor(clampedFrame, output, CV_BGR2GRAY);
 }
 
-vector<Rect> CascadeClassifierTester::handleFrame(Mat &frame, int &positives, int &misses, int &falsePositives) {
+vector<Rect> CascadeClassifierTester::handleFrame(const Mat &frame, int &positives, int &misses, int &falsePositives) {
     vector<Rect> found = vector<Rect>();
 
     Mat detectionFrame = frame;
 
     if(backgroundRemover) {
         backgroundRemover->onNewFrame(frame);
-        Rect *fgBBox = backgroundRemover->getForegroundBoundingBox(frame.cols, frame.rows);
+        Rect *fgBBox = backgroundRemover->getForegroundBoundingBox(
+            frame.cols, frame.rows, this->windowWidth, this->windowHeight);
 
         // Only detect in area marked as foreground by background remover
         try {
@@ -249,7 +236,7 @@ TestResult CascadeClassifierTester::resultAverage(vector<struct TestResult*> res
     }
     avg.detectionRate /= results.size();
     avg.falsePositiveRate /= results.size();
-    avg.testFile = nullptr;
+    avg.testFile = TestFile { "", 0 };
 
     return avg;
 };
