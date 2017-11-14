@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <string>
+#include <memory>
 
 #include "opencv2/core.hpp"
 #include "opencv2/highgui.hpp"
@@ -10,11 +11,22 @@
 #include "opencv2/objdetect.hpp"
 
 #include "backgroundremover.h"
-
+#include "keyframes.h"
 
 struct TestFile {
     std::string path;
     uint peopleCount;
+    std::shared_ptr<KeyFrames> keyFrames;
+
+    TestFile(std::string path, uint peopleCount, int keyFrameCount, int* keyFrames) {
+        this->path = path;
+        this->peopleCount = peopleCount;
+        this->keyFrames = std::make_shared<KeyFrames>(keyFrameCount, keyFrames, false);
+    }
+
+    TestFile() {
+
+    }
 };
 
 struct TestSet {
@@ -27,10 +39,12 @@ struct TestSet {
 };
 
 struct TestResult {
-    TestFile testFile;
+    TestFile *testFile;
     float detectionRate;
     float falsePositiveRate;
     float averageFps;
+
+    TestResult() { }
 };
 
 class CascadeClassifierTester
@@ -42,7 +56,7 @@ class CascadeClassifierTester
         }
 
         void setTestMaterialFiles(TestSet[]);
-        void setCascade(const std::string&, int, int);
+        void setCascade(const std::string&, const int, const int);
         void disableBgRemoval();
         void enableBgRemoval();
         TestResult* testVideoFile(struct TestFile);
@@ -53,7 +67,7 @@ class CascadeClassifierTester
         bool bgRemovalEnabled;
         BackgroundRemover *backgroundRemover;
 
-        std::vector<cv::Rect> handleFrame(cv::Mat&, int&, int&, int&);
+        std::vector<cv::Rect> handleFrame(const cv::Mat&, int&, int&, int&);
         cv::CascadeClassifier classifier;
         std::vector<std::string> testMaterial;
         std::vector<cv::Rect> filterFound(std::vector<cv::Rect>&);

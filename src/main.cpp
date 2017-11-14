@@ -13,7 +13,7 @@
 #include "opencv2/imgproc.hpp"
 #include "opencv2/objdetect.hpp"
 
-#include "cascadeclassifiertester.h"
+#include "classifiertester.h"
 #include "tests.h"
 
 #include <iostream>

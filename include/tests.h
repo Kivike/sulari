@@ -1,7 +1,12 @@
 #ifndef TESTS_H
 #define TESTS_H
 
+<<<<<<< Updated upstream
 #include "cascadeclassifiertester.h"
+=======
+#include "classifiertester.h"
+#include <fstream>
+>>>>>>> Stashed changes
 
 class Tests {
 public:
@@ -20,6 +25,8 @@ private:
     void runSet(TestSet*);
     void testCascade(TestSet*, const std::string&, int, int);
     void printResult(TestResult&);
+
+    std::ofstream testOutputCsv
 };
 
 #endif

@@ -2,10 +2,12 @@
 * Class for testing cascade classifiers to detect humans from video sequences
 */
 
-#include "cascadeclassifiertester.h"
+#include "classifiertester.h"
 #include "lbp.h"
 #include "backgroundremover.h"
 #include "imgutils.h"
+#include "config.h"
+#include "keyframes.h"
 
 #include "opencv2/core/core.hpp"
 #include "opencv2/highgui/highgui.hpp"
@@ -22,6 +24,7 @@ using namespace cv;
 using namespace std::chrono;
 
 const bool CascadeClassifierTester::PRINT_FRAMERATE = true;
+
 
 CascadeClassifierTester::CascadeClassifierTester() {}
 
@@ -45,7 +48,7 @@ TestResult* CascadeClassifierTester::testVideoFile(struct TestFile file) {
 
     if (!cap.isOpened()) {
         cout << "Failed to open file " << file.path << endl;
-        return 0;
+        return nullptr;
     }
 
     printf("[BGR:%d] %s", bgRemovalEnabled, file.path.c_str());
@@ -94,16 +97,24 @@ TestResult* CascadeClassifierTester::testVideoFile(struct TestFile file) {
 
             size_t found_count = filterFound(found).size();
 
+            bool humanInFrame = file.keyFrames->isHumanInFrame(frameCount);
+
             if(found_count > 0) {
-                if(found_count  >= file.peopleCount) {
-                    positives += file.peopleCount;
-                    falsePositives += found_count - file.peopleCount;
+                if(humanInFrame) {
+                    if(found_count  >= file.peopleCount) {
+                        positives += file.peopleCount;
+                        falsePositives += found_count - file.peopleCount;
+                    } else {
+                        positives += found_count;
+                        misses += file.peopleCount - found_count;
+                    }
                 } else {
-                    positives += found_count;
-                    misses += file.peopleCount - found_count;
+                    falsePositives += found_count;
                 }
             } else {
-                misses += file.peopleCount;
+                if(humanInFrame) {
+                    misses += file.peopleCount;
+                }
             }
             showOutputFrame(found, ppFrame);
         }
@@ -119,7 +130,7 @@ TestResult* CascadeClassifierTester::testVideoFile(struct TestFile file) {
     TestResult *result = new TestResult();
     result->averageFps = frameCount / (totalTime / 1000000000);
     result->detectionRate = detectionRate;
-    result->testFile = file;
+    result->testFile = &file;
     result->falsePositiveRate = falsePositiveRate;
 
     return result;
@@ -238,7 +249,7 @@ TestResult CascadeClassifierTester::resultAverage(vector<struct TestResult*> res
     }
     avg.detectionRate /= results.size();
     avg.falsePositiveRate /= results.size();
-    avg.testFile = TestFile { "", 0 };
+    avg.testFile = nullptr;
 
     return avg;
 };

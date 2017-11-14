@@ -1,7 +1,10 @@
 #include "tests.h"
-#include "cascadeclassifiertester.h"
+#include "classifiertester.h"
+#include "keyframes.h"
 #include <vector>
 #include <iostream>
+#include <memory>
+#include <fstream>
 
 using namespace std;
 using namespace cv;
@@ -49,34 +52,24 @@ void Tests::runSet(TestSet *set) {
     cout << "Run set " << set->name << endl;
     for (size_t i = 0; i < set->files.size(); i++) {
         TestResult *result = tester->testVideoFile(set->files.at(i));
-        printResult(*result);
-        delete result;
+
+        if(result != nullptr) {
+            printResult(*result);
+            delete result;
+        }
     }
 }
 
 vector<TestSet*> Tests::getTestSets() {
     vector<TestSet*> sets = vector<TestSet*>();
 
-    TestSet* kth = new TestSet("KTH");
-    kth->files = vector<TestFile> {
-        TestFile{ "videos/kth/daria_walk.avi", 1 },
-        TestFile{ "videos/kth/ira_walk.avi", 1 },
-        TestFile{ "videos/kth/lena_walk2.avi", 1 }
+    TestSet* weizmann = new TestSet("Weizmann");
+    weizmann->files = vector<TestFile> {
+        TestFile{ "videos/weizmann/daria_walk.avi", 1, 2, new int[2]{1, 50}},
+        TestFile{ "videos/weizmann/ira_walk.avi",   1, 2, new int[2]{1, 50}},
+        TestFile{ "videos/weizmann/lena_walk2.avi", 1, 2, new int[2]{1, 50}}
     };
 
-    TestSet* ut_interaction = new TestSet("ut_interaction");
-    ut_interaction->files = vector<TestFile> {
-        TestFile{ "videos/ut-interaction/seq5.avi", 2 },
-        TestFile{ "videos/ut-interaction/seq1.avi", 2 },
-        TestFile{ "videos/ut-interaction/seq2.avi", 2 },
-        TestFile{ "videos/ut-interaction/seq3.avi", 2 },
-        TestFile{ "videos/ut-interaction/seq4.avi", 2 },
-        TestFile{ "videos/ut-interaction/seq6.avi", 2 },
-        TestFile{ "videos/ut-interaction/seq7.avi", 2 },
-        TestFile{ "videos/ut-interaction/seq8.avi", 2 },
-        TestFile{ "videos/ut-interaction/seq9.avi", 2 },
-        TestFile{ "videos/ut-interaction/seq10.avi",  2 }
-    };
 
     //sets.push_back(kth);
     sets.push_back(ut_interaction);
