@@ -7,3 +7,6 @@
 !*.avi
 !*.xml
 !*.vec
+!*.txt
+!*.lst
+!*.dat
