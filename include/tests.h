@@ -2,6 +2,10 @@
 #define TESTS_H
 
 #include "classifiertester.h"
+#include "testset.h"
+
+#include <fstream>
+#include <string>
 
 class Tests {
 public:
@@ -9,8 +13,9 @@ public:
     Tests* run();
     Tests();
     ~Tests() {
-        delete tester;
+        delete this->tester;
     }
+protected:
 private:
     CascadeClassifierTester* tester;
     std::vector<TestSet*> sets;
@@ -20,6 +25,7 @@ private:
     void runSet(TestSet*);
     void testCascade(TestSet*, const std::string&, int, int);
     void printResult(TestResult&);
-};
 
+    //std::ofstream testOutputCsv
+};
 #endif

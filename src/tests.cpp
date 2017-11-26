@@ -1,7 +1,10 @@
 #include "tests.h"
 #include "classifiertester.h"
+#include "keyframes.h"
 #include <vector>
 #include <iostream>
+#include <memory>
+#include <fstream>
 
 using namespace std;
 using namespace cv;
@@ -25,9 +28,11 @@ Tests* Tests::run() {
 void Tests::runSetAll(TestSet *set) {
     tester = new CascadeClassifierTester();
 
+    testCascade(set, "cascade/lbp_09.xml", 32, 64);
+    testCascade(set, "cascade/lbp_10.xml", 32, 64);
+    testCascade(set, "cascade/lbp_11.xml", 32, 64);
     testCascade(set, "cascade/haar_01.xml", 20, 40);
     testCascade(set, "cascade/haar_02.xml", 20, 40);
-    testCascade(set, "cascade/haar_03.xml", 20, 40);
     testCascade(set, "cascade/haar_04.xml", 20, 40);
     testCascade(set, "cascade/haar_06.xml", 20, 40);
     testCascade(set, "cascade/lbp_01.xml", 20, 40);
@@ -38,6 +43,7 @@ void Tests::runSetAll(TestSet *set) {
     testCascade(set, "cascade/lbp_06.xml", 20, 40);
     testCascade(set, "cascade/lbp_07.xml", 20, 40);
     testCascade(set, "cascade/lbp_08.xml", 20, 40);
+
 }
 
 void Tests::testCascade(TestSet *set, const string& file, int width, int height) {
@@ -50,40 +56,25 @@ void Tests::testCascade(TestSet *set, const string& file, int width, int height)
 }
 
 void Tests::runSet(TestSet *set) {
-    cout << "Run set " << set->name << endl;
-    for (size_t i = 0; i < set->files.size(); i++) {
-        TestResult *result = tester->testVideoFile(set->files.at(i));
-        printResult(*result);
-        delete result;
+    cout << "INIT SET" << endl;
+    set->init();
+
+    std::vector<TestFile*> files = set->getFiles();
+
+    for (size_t i = 0; i < files.size(); i++) {
+        TestResult *result = tester->testVideoFile(*(files.at(i)));
+
+        if(result != nullptr) {
+            printResult(*result);
+            delete result;
+        }
     }
 }
 
 vector<TestSet*> Tests::getTestSets() {
     vector<TestSet*> sets = vector<TestSet*>();
-
-    TestSet* weizmann = new TestSet("Weizmann");
-    weizmann->files = vector<TestFile> {
-        TestFile{ "videos/weizmann/daria_walk.avi", 1 },
-        TestFile{ "videos/weizmann/ira_walk.avi", 1 },
-        TestFile{ "videos/weizmann/lena_walk2.avi", 1 }
-    };
-
-    TestSet* ut_interaction = new TestSet("ut_interaction");
-    ut_interaction->files = vector<TestFile> {
-        TestFile{ "videos/ut-interaction/seq5.avi", 2 },
-        TestFile{ "videos/ut-interaction/seq1.avi", 2 },
-        TestFile{ "videos/ut-interaction/seq2.avi", 2 },
-        TestFile{ "videos/ut-interaction/seq3.avi", 2 },
-        TestFile{ "videos/ut-interaction/seq4.avi", 2 },
-        TestFile{ "videos/ut-interaction/seq6.avi", 2 },
-        TestFile{ "videos/ut-interaction/seq7.avi", 2 },
-        TestFile{ "videos/ut-interaction/seq8.avi", 2 },
-        TestFile{ "videos/ut-interaction/seq9.avi", 2 },
-        TestFile{ "videos/ut-interaction/seq10.avi",  2 }
-    };
-
-    sets.push_back(weizmann);
-    //sets.push_back(ut_interaction);
+    sets.push_back(new TestSet("KTH running", "videos/kth/running", "videos/kth/kth_running_keyframes.csv"));
+    sets.push_back(new TestSet("KTH walking", "videos/kth/walking", "videos/kth/kth_walking_keyframes.csv"));
     return sets;
 }
 
