@@ -1,0 +1,1 @@
+opencv_traincascade -data lbp_12 -vec vec/pos_48x96.vec -bg neg.lst -numStages 12 -minHitRate 0.9975 -maxFalseAlarmRate 0.5 -numPos 2150 -numNeg 1216 -w 48 -h 96 -featureType LBP

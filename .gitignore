@@ -5,3 +5,7 @@
 !*.h
 !*.c
 !*.xml
+!*.vec
+!*.txt
+!*.lst
+!*.dat
