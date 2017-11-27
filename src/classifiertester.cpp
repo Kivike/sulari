@@ -42,11 +42,11 @@ void CascadeClassifierTester::setCascade(const string& file, const int width, co
  *
  * @param  file Video file to test
  */
-TestResult* CascadeClassifierTester::testVideoFile(struct TestFile file) {
-    VideoCapture cap = VideoCapture(file.getFilePath());
+TestResult* CascadeClassifierTester::testVideoFile(struct TestFile *file) {
+    VideoCapture cap = VideoCapture(file->getFilePath());
 
     if (!cap.isOpened()) {
-        std::cout << "Failed to open file " << file.getFilePath() << endl;
+        std::cout << "Failed to open file " << file->getFilePath() << endl;
         return 0;
     }
 
@@ -57,7 +57,7 @@ TestResult* CascadeClassifierTester::testVideoFile(struct TestFile file) {
     Mat frame, resizedFrame, ppFrame;
     double totalTime = 0.0;
     backgroundRemover = nullptr;
-    unsigned int videoPeopleCount = file.getPeopleCount();
+    unsigned int videoPeopleCount = file->getPeopleCount();
     bool humanInFrame = false;
     int framesWithHuman = 0;
 
@@ -78,8 +78,13 @@ TestResult* CascadeClassifierTester::testVideoFile(struct TestFile file) {
                 break;
             }
 
-            if (file.isKeyframe(frameCount)) {
+            if (file->isKeyframe(frameCount)) {
                 humanInFrame = !humanInFrame;
+                /*if (humanInFrame) {
+                    std::cout << "ENTER " << frameCount << endl;
+                } else {
+                    std::cout << "EXIT " << frameCount << endl;
+                }*/
             }
 
             if (humanInFrame) {
@@ -127,16 +132,13 @@ TestResult* CascadeClassifierTester::testVideoFile(struct TestFile file) {
         exit(5);
     }
 
-    std::cout << "TESTSET" << std::endl;
-    std::cout << framesWithHuman << " " << cap.get(CV_CAP_PROP_FRAME_COUNT) << std::endl;
-
     float detectionRate = positives / (float)(framesWithHuman);
     float falsePositiveRate = falsePositives / (float)cap.get(CV_CAP_PROP_FRAME_COUNT);
 
     TestResult *result = new TestResult();
     result->averageFps = frameCount / (totalTime / 1000000000);
     result->detectionRate = detectionRate;
-    result->testFile = &file;
+    result->testFile = file;
     result->falsePositiveRate = falsePositiveRate;
 
     return result;

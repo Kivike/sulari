@@ -35,7 +35,7 @@ class CascadeClassifierTester
         void setCascade(const std::string&, const int, const int);
         void disableBgRemoval();
         void enableBgRemoval();
-        TestResult* testVideoFile(TestFile);
+        TestResult* testVideoFile(TestFile*);
     protected:
     private:
         static const bool PRINT_FRAMERATE;

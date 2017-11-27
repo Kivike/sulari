@@ -37,6 +37,10 @@ void KeyframeCsv::read(std::vector<std::string>& filenames, std::vector<std::vec
 				} else {
 					try {
 						int frame = std::stoi(cell);
+
+						if (frame == 0 && column != 1) {
+							continue;
+						}
 						videoKeyframes.push_back(frame);	
 					} catch (const std::invalid_argument &ia) {}
 				}

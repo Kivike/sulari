@@ -30,13 +30,13 @@ std::vector<TestFile*> TestSet::readCsv()
  
 	csv.read(filenames, keyframes);
 
-	std::cout << "File contained " << filenames.size() << " videos" << std::endl;
+	std::cout << "Set contains " << filenames.size() << " videos" << std::endl;
 	std::vector<TestFile*> files;
 
 	for(size_t i = 0; i < filenames.size(); i++) {
 		std::string filePath = this->videoDir + '/' + filenames.at(i);
 
-		files.push_back(new TestFile(filePath, keyframes.at(i)));
+		files.push_back(new TestFile(filePath, filenames.at(i), keyframes.at(i)));
 	}
 	return files;
 }

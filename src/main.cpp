@@ -81,12 +81,13 @@ bool parseArgs(int argc, const char *argv[], string &filename, bool& webcam, boo
 }
 
 int runTests() {
-    cout << "Run tests" << endl;
+    cout << ">>>>>Running tests<<<<<" << endl;
     try {
         Tests* tests = new Tests();
         tests->run();
     } catch(const std::out_of_range& e) {
         cout << "OUT OF RANGE ERROR" << endl;
+        cout << e.what() << endl;
     }
 
     return 0;

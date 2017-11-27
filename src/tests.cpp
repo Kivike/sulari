@@ -36,7 +36,7 @@ void Tests::runSetAll(TestSet *set) {
     testCascade(set, "cascade/haar_12.xml", 23, 46);
     // 16 stages
     testCascade(set, "cascade/haar_13.xml", 23, 46);
-    
+
     // 10 stages
     testCascade(set, "cascade/lbp_14.xml", 48, 96);
     // 12 stages
@@ -57,13 +57,13 @@ void Tests::testCascade(TestSet *set, const string& file, int width, int height)
 }
 
 void Tests::runSet(TestSet *set) {
-    cout << "INIT SET" << endl;
     set->init();
 
     std::vector<TestFile*> files = set->getFiles();
 
     for (size_t i = 0; i < files.size(); i++) {
-        TestResult *result = tester->testVideoFile(*(files.at(i)));
+        std::cout << files.at(i)->getFilename() << std::flush;
+        TestResult *result = tester->testVideoFile(files.at(i));
 
         if(result != nullptr) {
             printResult(*result);
@@ -81,6 +81,7 @@ vector<TestSet*> Tests::getTestSets() {
 
 void Tests::printResult(TestResult &result) {
     printf(" [det: %.2f][falsep: %.2f][fps: %.2f]\n",
+        result.testFile->getFilePath().c_str(),
         result.detectionRate,
         result.falsePositiveRate,
         result.averageFps

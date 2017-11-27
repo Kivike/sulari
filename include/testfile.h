@@ -7,15 +7,16 @@
 class TestFile
 {
 public:
-    TestFile(std::string, std::vector<int>);
+    TestFile(std::string, std::string, std::vector<int>);
     TestFile();
     bool isKeyframe(int frame);
     unsigned int getPeopleCount() const;
     std::string getFilePath();
+    std::string getFilename();
 protected:
 private:
     std::vector<int> keyframes;
     unsigned int peopleCount;
-    std::string filePath;
+    std::string filePath, filename;
 };
 #endif

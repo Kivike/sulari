@@ -1,8 +1,10 @@
 #include "testfile.h"
+#include <iostream>
 
-TestFile::TestFile(std::string filePath, std::vector<int> keyframes)
+TestFile::TestFile(std::string filePath, std::string filename, std::vector<int> keyframes)
 {
 	this->filePath = filePath;
+	this->filename = filename;
 	this->keyframes = keyframes;
 	this->peopleCount = 1;
 }
@@ -20,6 +22,7 @@ bool TestFile::isKeyframe(int frame)
 			return true;
 		}
 	}
+	return false;
 }
 
 unsigned int TestFile::getPeopleCount() const
@@ -30,4 +33,9 @@ unsigned int TestFile::getPeopleCount() const
 std::string TestFile::getFilePath()
 {
 	return this->filePath;
+}
+
+std::string TestFile::getFilename()
+{
+	return this->filename;
 }
