@@ -27,7 +27,8 @@ const bool CascadeClassifierTester::PRINT_FRAMERATE = true;
 
 CascadeClassifierTester::CascadeClassifierTester() {}
 
-void CascadeClassifierTester::setCascade(const string& file, const int width, const int height) {
+void CascadeClassifierTester::setCascade(const string& file, const int width, const int height)
+{
     classifier.load(file);
 
     this->windowWidth = width;
@@ -42,7 +43,8 @@ void CascadeClassifierTester::setCascade(const string& file, const int width, co
  *
  * @param  file Video file to test
  */
-TestResult* CascadeClassifierTester::testVideoFile(struct TestFile *file) {
+TestResult* CascadeClassifierTester::testVideoFile(struct TestFile *file)
+{
     VideoCapture cap = VideoCapture(file->getFilePath());
 
     if (!cap.isOpened()) {
@@ -144,7 +146,8 @@ TestResult* CascadeClassifierTester::testVideoFile(struct TestFile *file) {
     return result;
 }
 
-vector<Rect> CascadeClassifierTester::filterFound(vector<Rect> &found) {
+vector<Rect> CascadeClassifierTester::filterFound(vector<Rect> &found)
+{
     vector<Rect> found_filtered;
 
     for(size_t i = 0; i < found.size(); i++) {
@@ -171,7 +174,8 @@ void CascadeClassifierTester::disableBgRemoval() {
     bgRemovalEnabled = false;
 }
 
-void CascadeClassifierTester::showOutputFrame(vector<Rect> &found, Mat& frame) {
+void CascadeClassifierTester::showOutputFrame(vector<Rect> &found, Mat& frame)
+{
     Mat bgrFrame;
     Rect *fgBBox = nullptr;
 
@@ -214,13 +218,15 @@ void CascadeClassifierTester::showOutputFrame(vector<Rect> &found, Mat& frame) {
     imshow("Test", bgrFrame);
 }
 
-void CascadeClassifierTester::preprocessFrame(Mat &frame, Mat &output) {
+void CascadeClassifierTester::preprocessFrame(Mat &frame, Mat &output)
+{
     Mat clampedFrame = ImgUtils::clampFrameSize(&frame, Size(96, 96), Size(256, 256));
     // Convert frame to grayscale
     cvtColor(clampedFrame, output, CV_BGR2GRAY);
 }
 
-vector<Rect> CascadeClassifierTester::handleFrame(const Mat &frame, int &positives, int &misses, int &falsePositives) {
+vector<Rect> CascadeClassifierTester::handleFrame(const Mat &frame, int &positives, int &misses, int &falsePositives)
+{
     vector<Rect> found = vector<Rect>();
 
     Mat detectionFrame = frame;
@@ -250,7 +256,8 @@ vector<Rect> CascadeClassifierTester::handleFrame(const Mat &frame, int &positiv
     return found;
  }
 
-TestResult CascadeClassifierTester::resultAverage(vector<struct TestResult*> results) {
+TestResult CascadeClassifierTester::resultAverage(vector<struct TestResult*> results)
+{
     TestResult avg = {};
 
     for(size_t i = 0; i < results.size(); i++) {

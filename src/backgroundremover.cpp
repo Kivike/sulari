@@ -27,7 +27,8 @@ using namespace std;
 
 mutex mtx;
 
-BackgroundRemover::BackgroundRemover(): pixels(nullptr) {
+BackgroundRemover::BackgroundRemover(): pixels(nullptr)
+{
     lbp = new LBP();
 }
 
@@ -37,7 +38,8 @@ BackgroundRemover::BackgroundRemover(): pixels(nullptr) {
  *  @param cols     Columns in frame
  * @param histCount How many adaptive histograms does a pixel have
  */
-void BackgroundRemover::initLBPPixels(const int rows, const int cols, const int histCount) {
+void BackgroundRemover::initLBPPixels(const int rows, const int cols, const int histCount)
+{
     pixels = new Mat(rows, cols, DataType<LBPPixel*>::type);
 
     for(int i = 0; i < rows; i++) {
@@ -56,7 +58,8 @@ void BackgroundRemover::initLBPPixels(const int rows, const int cols, const int 
 // Set pixels that will be used for calculating histogram
 // pixel: pixel of which to set neighbours for
 
-void BackgroundRemover::setHistogramNeighbours(LBPPixel* pixel) {
+void BackgroundRemover::setHistogramNeighbours(LBPPixel* pixel)
+{
     int halfRegionSize = Config::LBP_HISTOGRAM_REGION_SIZE/2;
 
     int startRow = max(1, pixel->getRow() - halfRegionSize);
@@ -82,7 +85,8 @@ void BackgroundRemover::setHistogramNeighbours(LBPPixel* pixel) {
  * @param  fgBBox Foreground bounding box
  * @return        Return original image with black background
  */
-Mat BackgroundRemover::cropBackground(Mat &img, Rect* fgBBox) {
+Mat BackgroundRemover::cropBackground(Mat &img, Rect* fgBBox)
+{
     Mat output = Mat(img.rows, img.cols, CV_8UC1);
 
     for(int i = 0; i < img.rows; i++) {
@@ -99,7 +103,8 @@ Mat BackgroundRemover::cropBackground(Mat &img, Rect* fgBBox) {
 }
 
 // Create 2-color frame of foreground and background pixels
-Mat BackgroundRemover::createMovementMatrix() {
+Mat BackgroundRemover::createMovementMatrix()
+{
     Mat result = Mat(pixels->rows, pixels->cols, CV_8UC1);
 
     for(int i = 0; i < result.rows; i++) {
@@ -115,8 +120,8 @@ Mat BackgroundRemover::createMovementMatrix() {
 }
 
 Rect* BackgroundRemover::getForegroundBoundingBox(
-    int max_x, int max_y, int min_w, int min_h
-) {
+    int max_x, int max_y, int min_w, int min_h)
+{
     int width = fgBoundingBox->endx - fgBoundingBox->startx;
     int height = fgBoundingBox->endy - fgBoundingBox->starty;
 
@@ -150,7 +155,8 @@ Rect* BackgroundRemover::getForegroundBoundingBox(
 }
 
 
-void BackgroundRemover::onNewFrame(const Mat& frame) {
+void BackgroundRemover::onNewFrame(const Mat& frame)
+{
     if(pixels == nullptr) {
         initLBPPixels(frame.rows, frame.cols, 3);
     }
@@ -194,7 +200,8 @@ void BackgroundRemover::onNewFrame(const Mat& frame) {
  * Handle rows from startRow to endRow
  */
 void BackgroundRemover::handleFrameRows(BackgroundRemover *bgr,  Mat* pixels,
-    const unsigned int startRow, const unsigned int endRow, const unsigned int rowInc) {
+    const unsigned int startRow, const unsigned int endRow, const unsigned int rowInc)
+{
     unsigned int endCol = pixels->cols - Config::LBP_DESCRIPTOR_RADIUS;
     BoundingBox *bbox = bgr->fgBoundingBox;
 

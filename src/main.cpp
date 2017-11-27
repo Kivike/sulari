@@ -28,7 +28,8 @@ bool parseArgs(int, const char *[], string&, bool&, bool&, string&);
 int runWithParams(const string&, const string&, bool);
 int runTests();
 
-int main(int argc, const char *argv[]) {
+int main(int argc, const char *argv[])
+{
     int exitCode = 0;
 
     string filename = "";
@@ -58,7 +59,8 @@ int main(int argc, const char *argv[]) {
 
 //
 // Return true if -test arg is set (using tests.cpp)
-bool parseArgs(int argc, const char *argv[], string &filename, bool& webcam, bool& removeBg, string& classifier) {
+bool parseArgs(int argc, const char *argv[], string &filename, bool& webcam, bool& removeBg, string& classifier)
+{
     for(int i = 0; i < argc; i++) {
         if(argv[i][0] == '-') {
             if(!strcmp(argv[i], "-test")) {
@@ -80,7 +82,8 @@ bool parseArgs(int argc, const char *argv[], string &filename, bool& webcam, boo
     return false;
 }
 
-int runTests() {
+int runTests()
+{
     cout << ">>>>>Running tests<<<<<" << endl;
     try {
         Tests* tests = new Tests();
@@ -93,7 +96,8 @@ int runTests() {
     return 0;
 }
 
-int runWithParams(const string &filename, const string &classifier, bool removeBg) {
+int runWithParams(const string &filename, const string &classifier, bool removeBg)
+{
     CascadeClassifierTester *cct = new CascadeClassifierTester();
 
     cout << "Running with given parameters" << endl;

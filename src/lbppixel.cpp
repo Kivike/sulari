@@ -24,33 +24,40 @@ using namespace std;
 using namespace cv;
 
 LBPPixel::LBPPixel(const int histogramCount, const int binCount, const int row, const int col)
-    : row(row), col(col), descriptor(0) {
+    : row(row), col(col), descriptor(0)
+{
     for(int i = 0; i < histogramCount; i++) {
         histograms.push_back(new AdaptiveHistogram(binCount));
     }
 }
 
-int LBPPixel::getRow() const {
+int LBPPixel::getRow() const
+{
     return row;
 }
 
-int LBPPixel::getCol() const {
+int LBPPixel::getCol() const
+{
     return col;
 }
 
-void LBPPixel::setDescriptor(const unsigned char descriptor) {
+void LBPPixel::setDescriptor(const unsigned char descriptor)
+{
     this->descriptor = descriptor;
 }
 
-unsigned char LBPPixel::getDescriptor() const {
+unsigned char LBPPixel::getDescriptor() const
+{
     return descriptor;
 }
 
-void LBPPixel::setHistogramNeighbours(const vector<LBPPixel*> &neighbourPixels) {
+void LBPPixel::setHistogramNeighbours(const vector<LBPPixel*> &neighbourPixels)
+{
     this->histogramNeighbours = neighbourPixels;
 }
 
-vector<LBPPixel*> LBPPixel::getHistogramNeighbours() const {
+vector<LBPPixel*> LBPPixel::getHistogramNeighbours() const
+{
     return this->histogramNeighbours;
 }
 
@@ -60,7 +67,8 @@ vector<LBPPixel*> LBPPixel::getHistogramNeighbours() const {
  * @param  h2
  * @return bool
  */
-bool LBPPixel::compareWeight(AdaptiveHistogram *h1, AdaptiveHistogram *h2) {
+bool LBPPixel::compareWeight(AdaptiveHistogram *h1, AdaptiveHistogram *h2)
+{
     return h1->getWeight() > h2->getWeight();
 }
 
@@ -71,7 +79,8 @@ bool LBPPixel::compareWeight(AdaptiveHistogram *h1, AdaptiveHistogram *h2) {
  * @param bestMatchProximity How close was the new histogram to the best match
  */
 void LBPPixel::updateHistogramWeights(const vector<unsigned int> &newHist,
-    int bestMatchIndex, float bestMatchProximity) {
+    int bestMatchIndex, float bestMatchProximity)
+{
     for(size_t i = 0; i < histograms.size(); i++) {
         if(i == (unsigned int)bestMatchIndex) {
             histograms.at(i)->updateWithNewData(newHist);
@@ -90,7 +99,8 @@ void LBPPixel::updateHistogramWeights(const vector<unsigned int> &newHist,
  * @param bestHistIndex Index of best match
  * @param bestProximity How close the best match is (0.0 - 1.0)
  */
-void LBPPixel::getBestProximityMatch(const vector<unsigned int> &histogram, int& bestHistIndex, float& bestProximity) {
+void LBPPixel::getBestProximityMatch(const vector<unsigned int> &histogram, int& bestHistIndex, float& bestProximity)
+{
     bestHistIndex = -1;
     bestProximity = -1.0f;
 
@@ -107,7 +117,8 @@ void LBPPixel::getBestProximityMatch(const vector<unsigned int> &histogram, int&
 /**
  * Update histograms based on the new histogram
  */
-void LBPPixel::updateAdaptiveHistograms(vector<unsigned int> &histogram) {
+void LBPPixel::updateAdaptiveHistograms(vector<unsigned int> &histogram)
+{
     int bestHistIndex;
     float bestProximity;
 
@@ -124,7 +135,8 @@ void LBPPixel::updateAdaptiveHistograms(vector<unsigned int> &histogram) {
 /**
  * Sort histograms by weight
  */
-void LBPPixel::sortHistograms() {
+void LBPPixel::sortHistograms()
+{
     sort(histograms.begin(), histograms.end(), compareWeight);
 }
 
@@ -132,14 +144,16 @@ void LBPPixel::sortHistograms() {
  * Set new bins for the histogram with lowest weight
  * @param hist [description]
  */
-void LBPPixel::setLowestWeightHistogram(const vector<unsigned int>& hist) {
+void LBPPixel::setLowestWeightHistogram(const vector<unsigned int>& hist)
+{
     histograms.back()->setBins(hist);
 }
 
 /**
  * Update vector of background histograms
  */
-void LBPPixel::updateBackgroundHistograms() {
+void LBPPixel::updateBackgroundHistograms()
+{
     backgroundHistograms.clear();
 
     sortHistograms();
@@ -160,7 +174,8 @@ void LBPPixel::updateBackgroundHistograms() {
  * @param  newHist Histogram of most recent frame
  * @return         [description]
  */
-bool LBPPixel::isBackground(const vector<unsigned int> &newHist) {
+bool LBPPixel::isBackground(const vector<unsigned int> &newHist)
+{
     for(size_t i = 0; i < backgroundHistograms.size(); i++) {
         float proximity = LBP::getHistogramProximity(backgroundHistograms.at(i)->getBins(), newHist);
 
@@ -174,7 +189,8 @@ bool LBPPixel::isBackground(const vector<unsigned int> &newHist) {
     return false;
 }
 
-unsigned char LBPPixel::getColor(const bool weightGrayValue) {
+unsigned char LBPPixel::getColor(const bool weightGrayValue)
+{
     if(weightGrayValue) {
         return (1 - histograms.at(0)->getWeight()) * 255;
     } else {
@@ -182,11 +198,13 @@ unsigned char LBPPixel::getColor(const bool weightGrayValue) {
     }
 }
 
-void LBPPixel::setColor(const unsigned char color) {
+void LBPPixel::setColor(const unsigned char color)
+{
     this->color = color;
 }
 
-void LBPPixel::printHistogramWeights() {
+void LBPPixel::printHistogramWeights()
+{
     for(size_t i = 0; i < histograms.size(); i++) {
         cout << i << ": " << histograms.at(i)->getWeight() << " ";
     }
@@ -194,6 +212,7 @@ void LBPPixel::printHistogramWeights() {
     cout << endl;
 }
 
-void LBPPixel::printPosition() {
+void LBPPixel::printPosition()
+{
     cout << this << " Pos: " << this->row << " " << this->col << endl;
 }

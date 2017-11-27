@@ -12,7 +12,8 @@ using namespace cv;
  * @param  maxSize Maximum rows & columns
  * @return         Returns scaled frame
  */
-Mat ImgUtils::clampFrameSize(Mat *frame, const Size minSize, const Size maxSize) {
+Mat ImgUtils::clampFrameSize(Mat *frame, const Size minSize, const Size maxSize)
+{
     float multiplier = 1;
 
     if(frame->cols < minSize.width || frame->rows < minSize.height){
@@ -39,8 +40,9 @@ Mat ImgUtils::clampFrameSize(Mat *frame, const Size minSize, const Size maxSize)
  * @param  img_b [description]
  * @return         [description]
  */
-Mat* ImgUtils::frameMin(Mat& img_a, Mat& img_b) {
-    if(img_a.rows != img_b.rows || img_a.cols != img_b.cols) {
+Mat* ImgUtils::frameMin(Mat& img_a, Mat& img_b)
+{
+    if(img_a.rows != img_b.rows || img_a.cols != img_b.cols){
         return nullptr;
     }
 
