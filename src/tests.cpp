@@ -28,22 +28,23 @@ Tests* Tests::run() {
 void Tests::runSetAll(TestSet *set) {
     tester = new CascadeClassifierTester();
 
-    testCascade(set, "cascade/lbp_09.xml", 32, 64);
-    testCascade(set, "cascade/lbp_10.xml", 32, 64);
-    testCascade(set, "cascade/lbp_11.xml", 32, 64);
-    testCascade(set, "cascade/haar_01.xml", 20, 40);
-    testCascade(set, "cascade/haar_02.xml", 20, 40);
-    testCascade(set, "cascade/haar_04.xml", 20, 40);
-    testCascade(set, "cascade/haar_06.xml", 20, 40);
-    testCascade(set, "cascade/lbp_01.xml", 20, 40);
-    testCascade(set, "cascade/lbp_02.xml", 20, 40);
-    testCascade(set, "cascade/lbp_03.xml", 20, 40);
-    testCascade(set, "cascade/lbp_04.xml", 20, 40);
-    testCascade(set, "cascade/lbp_05.xml", 20, 40);
-    testCascade(set, "cascade/lbp_06.xml", 20, 40);
-    testCascade(set, "cascade/lbp_07.xml", 20, 40);
-    testCascade(set, "cascade/lbp_08.xml", 20, 40);
-
+    // 10 stages
+    testCascade(set, "cascade/haar_10.xml", 23, 46);
+    // 12 stages
+    testCascade(set, "cascade/haar_11.xml", 23, 46);
+    // 14 stages
+    testCascade(set, "cascade/haar_12.xml", 23, 46);
+    // 16 stages
+    testCascade(set, "cascade/haar_13.xml", 23, 46);
+    
+    // 10 stages
+    testCascade(set, "cascade/lbp_14.xml", 48, 96);
+    // 12 stages
+    testCascade(set, "cascade/lbp_16.xml", 48, 96);
+    // 14 stages
+    testCascade(set, "cascade/lbp_17.xml", 48, 96);
+    // 16 stages
+    testCascade(set, "cascade/lbp_19.xml", 48, 96);
 }
 
 void Tests::testCascade(TestSet *set, const string& file, int width, int height) {
