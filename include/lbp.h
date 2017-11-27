@@ -8,7 +8,8 @@
 
 #include "lbppixel.h"
 
-class LBP {
+class LBP
+{
 public:
     static const int HISTOGRAM_REGION_SIZE;
     static const unsigned int BIN_COUNT;

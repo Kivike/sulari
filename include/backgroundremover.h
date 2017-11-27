@@ -9,14 +9,16 @@
 #include "lbppixel.h"
 #include "lbp.h"
 
-struct BoundingBox {
+struct BoundingBox
+{
     unsigned int startx;
     unsigned int endx;
     unsigned int starty;
     unsigned int endy;
 };
 
-class BackgroundRemover {
+class BackgroundRemover
+{
 public:
     std::vector<LBPPixel*> fgPixels;
     LBP *lbp;

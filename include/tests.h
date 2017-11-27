@@ -7,7 +7,8 @@
 #include <fstream>
 #include <string>
 
-class Tests {
+class Tests
+{
 public:
     Tests* setTester(CascadeClassifierTester*);
     Tests* run();

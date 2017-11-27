@@ -1,7 +1,8 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-class Config {
+class Config
+{
 public:
     static const bool COMBINE_FRAMES = true;
     static const bool BGR_INTERLACE_ENABLED = true;

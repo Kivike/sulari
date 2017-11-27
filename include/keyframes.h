@@ -3,7 +3,8 @@
 
 #include <vector>
 
-class KeyframeCsv {
+class KeyframeCsv
+{
 	public:
 		KeyframeCsv(std::string);
 		void read(std::vector<std::string>&, std::vector<std::vector<int>>&);

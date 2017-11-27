@@ -85,7 +85,6 @@ vector<TestSet*> Tests::getTestSets()
 void Tests::printResult(TestResult &result)
 {
     printf(" [det: %.2f][falsep: %.2f][fps: %.2f]\n",
-        result.testFile->getFilePath().c_str(),
         result.detectionRate,
         result.falsePositiveRate,
         result.averageFps
