@@ -2,6 +2,7 @@
 !*/
 !.gitignore
 !*.cpp
+!*.py
 !*.h
 !*.c
 !*.xml
